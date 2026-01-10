@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16
+    container_name: tutoring_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tutoring
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: tutoring_web
+    depends_on:
+      - db
+    environment:
+      # Prisma reads DATABASE_URL from env
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/tutoring?schema=public
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/.next
+    command: sh -c "npx prisma migrate dev --name init && npx prisma db seed && npm run dev -- -p 3000"
+
+volumes:
+  db_data:
