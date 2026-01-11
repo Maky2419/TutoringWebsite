@@ -1,25 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Container from "../../components/Container";
 import PageHeader from "../../components/PageHeader";
+
+type Tutor = {
+  id: number;
+  name: string;
+  email: string;
+  subjects: string;
+  bio: string;
+  hourlyRate: number;
+};
 
 export default function BookPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [tutorsLoading, setTutorsLoading] = useState(true);
+  const [selectedTutorId, setSelectedTutorId] = useState<string>("");
+
+  const selectedTutor = useMemo(
+    () => tutors.find((t) => String(t.id) === selectedTutorId),
+    [tutors, selectedTutorId]
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        setTutorsLoading(true);
+        const res = await fetch("/api/tutors");
+        if (!res.ok) throw new Error(await res.text());
+        const data = (await res.json()) as Tutor[];
+        if (!cancelled) setTutors(data);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || "Failed to load tutors");
+      } finally {
+        if (!cancelled) setTutorsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    // ✅ Always the form element in an onSubmit handler
+    const formEl = e.currentTarget;
+
     setStatus("submitting");
     setError(null);
 
-    const form = new FormData(e.currentTarget);
+    const form = new FormData(formEl);
+
     const payload = {
-      studentName: String(form.get("studentName") || ""),
-      studentEmail: String(form.get("studentEmail") || ""),
-      subject: String(form.get("subject") || ""),
-      preferredTimes: String(form.get("preferredTimes") || ""),
-      message: String(form.get("message") || "") || undefined
+      tutorId: selectedTutorId ? Number(selectedTutorId) : undefined,
+      studentName: String(form.get("studentName") || "").trim(),
+      studentEmail: String(form.get("studentEmail") || "").trim(),
+      subject: String(form.get("subject") || "").trim(),
+      preferredTimes: String(form.get("preferredTimes") || "").trim(),
+      message: String(form.get("message") || "").trim() || undefined
     };
 
     try {
@@ -28,10 +73,20 @@ export default function BookPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error(await res.text());
+
+      if (!res.ok) {
+        // Try to show a more readable message
+        const txt = await res.text();
+        throw new Error(txt || "Request failed");
+      }
 
       setStatus("success");
-      (e.currentTarget as HTMLFormElement).reset();
+
+      // Reset native form fields
+      formEl.reset();
+
+      // Reset controlled field (tutor dropdown)
+      setSelectedTutorId("");
     } catch (err: any) {
       setStatus("error");
       setError(err?.message || "Something went wrong");
@@ -40,131 +95,142 @@ export default function BookPage() {
 
   return (
     <div className="relative overflow-hidden">
-      {/* subtle background decoration */}
       <div className="pointer-events-none absolute -top-40 left-[-120px] h-[520px] w-[520px] rounded-full bg-indigo-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 right-[-120px] h-[520px] w-[520px] rounded-full bg-purple-500/20 blur-3xl" />
 
       <PageHeader
-        title="Request a Booking"
-        subtitle="Tell us what you need, and we’ll match you with a tutor."
+        title="Request a Tutoring Session"
+        subtitle="Pick a tutor, submit a request — you’ll get emailed when they accept."
       />
 
       <Container>
-        <div className="grid gap-10 pb-16 lg:grid-cols-[1fr_420px] lg:items-start">
-          {/* form */}
-          <form onSubmit={onSubmit} className="glass p-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-white">Booking details</h2>
-              <p className="mt-1 text-sm text-white/70">
-                Fill this out and we’ll reply by email with next steps.
-              </p>
-            </div>
+        <div className="grid gap-10 py-10 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <form
+              onSubmit={onSubmit}
+              className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur"
+            >
+              <div className="mb-6">
+                <label className="mb-2 block text-sm font-medium text-white/80">
+                  Select a tutor <span className="text-rose-300">*</span>
+                </label>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-white/80">Your name</span>
-                <input
-                  name="studentName"
+                <select
+                  value={selectedTutorId}
+                  onChange={(e) => setSelectedTutorId(e.target.value)}
                   required
-                  className="input"
-                  
-                />
-              </label>
+                  className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                >
+                  <option value="" disabled>
+                    {tutorsLoading ? "Loading tutors..." : "Choose a tutor"}
+                  </option>
+                  {tutors.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} — {t.subjects} (${t.hourlyRate}/hr)
+                    </option>
+                  ))}
+                </select>
 
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-white/80">Email</span>
+                {selectedTutor && (
+                  <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-sm font-semibold text-white/90">{selectedTutor.name}</p>
+                    <p className="mt-1 text-sm text-white/70">{selectedTutor.subjects}</p>
+                    <p className="mt-2 text-sm text-white/70">{selectedTutor.bio}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Your name <span className="text-rose-300">*</span>
+                  </label>
+                  <input
+                    name="studentName"
+                    required
+                    className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                    placeholder="Your full name"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/80">
+                    Your email <span className="text-rose-300">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="studentEmail"
+                    required
+                    className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                    placeholder="you@email.com"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-white/80">
+                  Subject / Topic <span className="text-rose-300">*</span>
+                </label>
                 <input
-                  name="studentEmail"
-                  type="email"
+                  name="subject"
                   required
-                  className="input"
-                  placeholder="you@example.com"
+                  className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  placeholder="e.g., Trigonometry identities"
                 />
-              </label>
-            </div>
+              </div>
 
-            <label className="mt-5 grid gap-2">
-              <span className="text-sm font-medium text-white/80">Subject / topic</span>
-              <input
-                name="subject"
-                required
-                className="input"
-                placeholder="e.g., AP Calculus — derivatives"
-              />
-            </label>
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-white/80">
+                  Preferred times <span className="text-rose-300">*</span>
+                </label>
+                <input
+                  name="preferredTimes"
+                  required
+                  className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  placeholder="e.g., Mon/Wed 6–7pm"
+                />
+              </div>
 
-            <label className="mt-5 grid gap-2">
-              <span className="text-sm font-medium text-white/80">Preferred times</span>
-              <input
-                name="preferredTimes"
-                required
-                className="input"
-                placeholder="e.g., Mon/Wed 6–8pm (German time)"
-              />
-            </label>
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-white/80">Message (optional)</label>
+                <textarea
+                  name="message"
+                  rows={5}
+                  className="w-full resize-none rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  placeholder="Anything the tutor should know?"
+                />
+              </div>
 
-            <label className="mt-5 grid gap-2">
-              <span className="text-sm font-medium text-white/80">Message (optional)</span>
-              <textarea
-                name="message"
-                className="input min-h-[140px] resize-none"
-                placeholder="Goals, exam date, current level, what you’re struggling with, etc."
-              />
-            </label>
+              {status === "success" && (
+                <div className="mt-5 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-emerald-100">
+                  Request sent! We emailed the tutor — you’ll get an email when they accept or decline.
+                </div>
+              )}
 
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+              {status === "error" && (
+                <div className="mt-5 rounded-xl border border-rose-400/25 bg-rose-500/10 p-4 text-rose-100">
+                  {error || "Something went wrong."}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="btn-primary w-full sm:w-auto disabled:opacity-60"
+                className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-black shadow-lg shadow-black/20 transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {status === "submitting" ? "Submitting..." : "Submit request"}
+                {status === "submitting" ? "Sending..." : "Send request"}
               </button>
+            </form>
+          </div>
 
-              {status === "success" ? (
-                <div className="w-full rounded-xl border border-green-400/30 bg-green-500/10 px-4 py-3 text-sm text-green-200">
-                  Request submitted! 🎉 Check your email soon.
-                </div>
-              ) : null}
-
-              {status === "error" ? (
-                <div className="w-full rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  Error: {error}
-                </div>
-              ) : null}
-            </div>
-          </form>
-
-          {/* side panel */}
-          <aside className="glass p-7">
-            <h3 className="text-lg font-semibold text-white">What happens next?</h3>
-
+          <aside className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
+            <h3 className="text-lg font-semibold text-white">How it works</h3>
             <ul className="mt-4 space-y-3 text-sm text-white/70">
-              <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white">
-                  1
-                </span>
-                <span>We review your request and match you with the best tutor.</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white">
-                  2
-                </span>
-                <span>We email you available times and a session plan.</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white">
-                  3
-                </span>
-                <span>You confirm, and your booking is locked in.</span>
-              </li>
+              <li>1) Pick a tutor</li>
+              <li>2) Submit your request</li>
+              <li>3) Tutor accepts/declines via email link</li>
+              <li>4) You get emailed the decision</li>
             </ul>
-
-            <div className="mt-6 rounded-2xl border border-white/15 bg-white/5 p-4">
-              <p className="text-sm text-white/70">
-                Tip: Add your exam date and current level in the message for faster matching.
-              </p>
-            </div>
           </aside>
         </div>
       </Container>

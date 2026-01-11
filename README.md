@@ -1,57 +1,66 @@
-# Tutoring Service 
-Stack:
-- Next.js 14 (App Router) + React
-- Tailwind CSS
-- PostgreSQL
-- Prisma ORM
-- Docker + Docker Compose
+# Tutoring Website (Gmail Email + Tutor Accept/Decline)
 
-## Quick start (Docker)
-1) Install Docker Desktop
-2) From the project root:
+## What this project does
+- Student selects a tutor and submits a booking request
+- Backend saves the booking in Postgres (Prisma)
+- Tutor receives an email with Accept / Decline links
+- When tutor clicks a link, the student gets emailed the result
+
+## Prerequisites
+- Node.js 18+
+- Docker Desktop (for Postgres)
+- A Gmail account + a Gmail **App Password** (recommended)
+
+## Setup (copy/paste)
+
+### 1) Start the database
+From the project folder:
+
 ```bash
-docker compose up --build
+docker compose up -d
 ```
 
-Then open:
-- App: http://localhost:3000
+### 2) Install dependencies
+```bash
+npm install
+```
 
-## Set up Prisma
-Inside Docker the app runs migrations automatically on start (dev mode).
-If you run locally:
+### 3) Create your .env
+Copy the example env:
+
 ```bash
 cp .env.example .env
-npm install
-npx prisma migrate dev
-npx prisma db seed
+```
+
+Now edit `.env` and set:
+
+- SMTP_USER = your Gmail address
+- SMTP_PASS = your Gmail **App Password**
+
+**Gmail App Password:** Google Account → Security → 2-Step Verification → App passwords.
+(You must have 2FA enabled to create an app password.)
+
+### 4) Create tables + seed tutors
+```bash
+npx prisma migrate dev --name init
+node prisma/seed.js
+```
+
+### 5) Run the app
+```bash
 npm run dev
 ```
 
-## Pages included
-- `/` Home
-- `/services`
-- `/pricing`
-- `/tutors`
-- `/tutors/[id]`
-- `/book` (request booking)
-- `/contact`
-- `/faq`
-- `/about`
-- `/terms`
-- `/privacy`
+Open:
+- http://localhost:3000
+- http://localhost:3000/book
 
-## API routes included (Next.js route handlers)
-- `GET /api/health`
-- `GET /api/tutors`
-- `GET /api/tutors/[id]`
-- `POST /api/bookings`
-- `GET /api/bookings` (admin/dev convenience)
-- `POST /api/auth/register` (placeholder)
-- `POST /api/auth/login` (placeholder)
+## How to test the full email flow
+1) Go to /book and submit a request.
+2) Check the tutor email inbox for the Accept/Decline email.
+3) Click Accept or Decline.
+4) Check the student email inbox for the decision email.
 
 ## Notes
-- Auth routes are placeholders (no sessions yet). Add NextAuth or your own JWT flow later.
-- Booking flow: collects basic details and creates a `Booking` record in Postgres.
-
-## Fix note
-Server Components should **not** fetch relative URLs like `/api/...` from Node (it can throw ERR_INVALID_URL). This template reads from Prisma directly in server pages (recommended).
+- In `prisma/seed.js`, tutors use placeholder emails like `kashif@example.com`. Replace those with real tutor emails.
+- `APP_BASE_URL` is used to generate links in emails. Keep it as `http://localhost:3000` for local dev.
