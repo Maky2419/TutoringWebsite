@@ -13,10 +13,23 @@ model Tutor {
   email      String   @unique
   subjects   String
   bio        String
+  education  String?  // ✅ TEMP: nullable
   hourlyRate Int      @default(50)
   createdAt  DateTime @default(now())
 
+  reviews    Review[]
   bookings   Booking[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String
+  student   String
+  createdAt DateTime @default(now())
+
+  tutorId   Int
+  tutor     Tutor @relation(fields: [tutorId], references: [id])
 }
 
 model Booking {
