@@ -9,8 +9,6 @@ export default function Footer() {
 
         <div>
           <p><a href="/about">About</a></p>
-          <p><a href="/services">Services</a></p>
-          <p><a href="/pricing">Pricing</a></p>
         </div>
 
         <div>
