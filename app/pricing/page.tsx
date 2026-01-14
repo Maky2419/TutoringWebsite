@@ -15,7 +15,7 @@ type CurrencyMeta = {
 };
 
 const CURRENCIES: Record<Currency, CurrencyMeta> = {
-  AED: { symbol: " Dirham", label: "AED (Dirham)", rateFromAED: 1 },
+  AED: { symbol: " AED ", label: "AED (Dirham)", rateFromAED: 1 },
   USD: { symbol: "$", label: "USD (US Dollar)", rateFromAED: 0.272 }, // approx
   CAD: { symbol: "$", label: "CAD (Canadian Dollar)", rateFromAED: 0.37 }, // approx
   EUR: { symbol: "€", label: "EUR (Euro)", rateFromAED: 0.25 }, // approx
@@ -27,22 +27,42 @@ const BASE_PRICES_AED = [
   { title: "1.5 hour session", aed: 250, highlight: false }
 ];
 
+// ✅ Rounding steps: nearest 10 for AED, nearest 5 for others
+const ROUNDING_STEP: Record<Currency, number> = {
+  AED: 10,
+  USD: 5,
+  CAD: 5,
+  EUR: 5,
+  GBP: 5
+};
+
+// ✅ Always rounds UP
+function roundUpToStep(value: number, step: number) {
+  return Math.ceil(value / step) * step;
+}
+
 export default function PricingPage() {
   const [currency, setCurrency] = useState<Currency>("AED");
 
   const meta = CURRENCIES[currency];
 
   const prices = useMemo(() => {
-    return BASE_PRICES_AED.map((p) => ({
-      ...p,
-      value: p.aed * meta.rateFromAED
-    }));
-  }, [meta.rateFromAED]);
+    const step = ROUNDING_STEP[currency];
+
+    return BASE_PRICES_AED.map((p) => {
+      const converted = p.aed * meta.rateFromAED;
+      const roundedUp = roundUpToStep(converted, step);
+
+      return {
+        ...p,
+        value: roundedUp
+      };
+    });
+  }, [currency, meta.rateFromAED]);
 
   function formatMoney(amount: number) {
-    // AED shows no decimals; others show 0–2 nicely
-    const decimals = currency === "AED" ? 0 : amount < 10 ? 2 : 0;
-    const rounded = amount.toFixed(decimals);
+    // After rounding to 5/10, decimals are unnecessary
+    const rounded = amount.toFixed(0);
     return `${meta.symbol}${rounded}`;
   }
 
@@ -121,9 +141,7 @@ export default function PricingPage() {
 
                 <div className="mt-6">
                   <p className="text-4xl font-semibold text-white">{formatMoney(p.value)}</p>
-                  <p className="mt-2 text-sm text-white/60">
-                    ({p.aed} AED base)
-                  </p>
+                  <p className="mt-2 text-sm text-white/60">({p.aed} AED base)</p>
                 </div>
 
                 <ul className="mt-6 space-y-2 text-sm text-white/75">

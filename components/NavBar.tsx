@@ -10,9 +10,11 @@ export default function NavBar() {
 
         <div className="flex gap-6 items-center text-sm">
           <Link href="/tutors" className="hover:text-indigo-400">Tutors</Link>
+          <Link href="/apply"className="hover:text-indigo-400" >Become a tutor</Link>
           <Link href="/pricing" className="hover:text-indigo-400">Pricing</Link>
           <Link href="/services" className="hover:text-indigo-400">Services</Link>
           <Link href="/book" className="btn-primary">Book Now</Link>
+          
         </div>
       </div>
     </nav>
