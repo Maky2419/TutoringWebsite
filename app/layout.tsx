@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 
 export const metadata = {
   title: "Tutoring Service",
-  description: "Tutoring service skeleton (Next.js + Prisma + Postgres)."
+  //description: "Tutoring service skeleton (Next.js + Prisma + Postgres)."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
