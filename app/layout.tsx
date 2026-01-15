@@ -3,7 +3,7 @@ import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 
 export const metadata = {
-  title: "TutorFlow — Tutoring & Booking",
+  title: "Tutoring Service",
   description: "Tutoring service skeleton (Next.js + Prisma + Postgres)."
 };
 

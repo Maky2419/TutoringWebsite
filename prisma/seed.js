@@ -8,9 +8,9 @@ async function main() {
     {
       name: "Muhammad Ahsan",
       email: "ahsankalam04@gmail.com",
-      subjects: "Algebra, Trigonometry, Calculus",
-      bio: "Patient, structured tutoring focused on fundamentals and exam strategy.",
-      education: "BSc Mathematics – University of British Columbia",
+      subjects: "AP Maths, IB DP Mathematic AA&AI, Computer Scicence, Java, Python,",
+      bio: "Fourth-year undergraduate student nearing graduation in Computer Science and Mathematics, having completed mathematics at the fourth-year university level. I have over eight years of teaching experience, working with students from middle school and high school through to second-year university, as well as in professional and academic settings. I teach both mathematics and computer science and have experience teaching independently and under the guidance of experienced teachers and university professors. My teaching style is student-focused, supportive, and approachable, with an emphasis on helping students truly understand concepts rather than rely on memorization. I provide exam preparation support, including custom practice questions and exam-style papers, and ensure that students have a strong grasp of each topic before moving forward, addressing any concerns or gaps in understanding well before exams so they feel confident and prepared.",
+      education: "BSc Computer Science and Mathematics – University of British Columbia",
       hourlyRate: 55
     },
     {
