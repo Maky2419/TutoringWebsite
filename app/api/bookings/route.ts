@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     const subject = String(body.subject || "").trim();
     const preferredTimes = String(body.preferredTimes || "").trim();
     const message = body.message ? String(body.message).trim() : "";
+    
 
     if (!tutorId || Number.isNaN(tutorId)) {
       return NextResponse.json({ error: "tutorId is required" }, { status: 400 });
@@ -94,12 +95,14 @@ export async function POST(req: Request) {
         .filter(Boolean)
         .join("\n");
 
-      await sendEmail({
-        to: tutor.email,
-        subject: `New tutoring request: ${subject}`,
-        text,
-        html
-      });
+      const adminEmail = process.env.ADMIN_EMAIL;
+
+await sendEmail({
+  to: adminEmail ? [tutor.email, adminEmail] : tutor.email,
+  subject: `New tutoring request: ${subject}`,
+  text,
+  html
+});
 
       console.log("✅ Email sent to tutor:", tutor.email);
       emailSent = true;
