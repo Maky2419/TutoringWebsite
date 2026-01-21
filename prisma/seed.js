@@ -69,14 +69,21 @@ async function main() {
       reviewsToCreate.push(
         {
           rating: 5,
-          comment: "Super clear explanations and very patient!",
-          student: "Jason",
+          comment: "The lesson with Ahsan went very well last night. Thank you for connecting us with him. I am looking forward to starting the regular schedule of tutoring next week - that will be on Monday and Wednesdays.  I’m extremely grateful for Ahsan’s help. Zey found the session extremely beneficial. He also appreciates that you pushed him and gave encouragement as well as positive reinforcement. ",
+          student: "Dr. Ardoin, parent of Zey",
           tutorId: ahsanId
         },
         {
           rating: 5,
-          comment: "Helped me understand trig identities in one session.",
-          student: "Zey",
+          comment: "Ahsan has been my tutor for the past two years, and he consistently goes beyond his comfort zone to support his students. Not only does he provide his own personalized learning notes, but he also creates past practice papers that match the difficulty level of our university courses. All of this is done while he maintains top grades in Mathematics and Computer Science at UBC, a top-30 university worldwide.",
+          student: "Ahab Masoud Siddiqui",
+          tutorId: ahsanId
+        }
+        ,
+        {
+          rating: 4,
+          comment: "I worked with Ahsan during my university Calculus 1 and Calculus 2 courses, and his help made a huge difference. We met multiple times a week for long sessions, and he was always patient and fully focused. He never rushed through topics and made sure I actually understood the concepts. His explanations were clear and easy to follow, even for harder calculus ideas. He created his own notes and lots of practice questions that matched our course level. If something didn’t make sense, he explained it in a different way until it clicked. You can tell he knows calculus extremely well. The amount of time and effort he put in every week really stood out. Overall, his support helped me feel much more confident in the course.",
+          student: "Aarav Singh Chabara",
           tutorId: ahsanId
         }
       );
@@ -103,13 +110,33 @@ async function main() {
       reviewsToCreate.push(
         {
           rating: 5,
-          comment: "My essays improved a lot — great feedback and structure tips.",
-          student: "Hassan",
+          comment: "It is our pleasure to write this letter to recommend Ms. Amber as an excellent math teacher. Ms.Amber uses different teaching techniques that encourages our children to ask queries, clarifies any doubts which helps them to develop conceptual understanding. Since our engagement with Ms. Amber, we have noticed that our kids’ interest in math has increased which is also reflected in their grades at class. We strongly recommend Ms. Amber as a very professional, dedicated math teacher.",
+          student: "Samrah Maryam, parent ABA Oman an IB world school",
+          tutorId: ambreenId
+        },
+        {
+          rating: 4.5,
+          comment: "We had Mrs.Amber as my daughter’s math tutor since 3rd grade , with times ( it’s been 3 yrs) I have seen my daughter developing interest and confidence in Math Amber was a catalyst in my daughter’s life who changed the perspective for her that Math does not resonate fear and anxiety but Math is interesting,logical and fun.",
+          student: "Bhakti Toprani, Parent ABA Oman an IB world school and Teacher at Petroleum Development Oman School",
+          tutorId: ambreenId
+        },
+        {
+          rating: 5,
+          comment: "Amber has worked as a math tutor for our daughter, Kimberly Ocean, for several years, both during middle school and high school. Kimberly Ocean was at that time a student at ABA Muscat, Oman (IB curriculum).Amber has been an invaluable help to get our daughter through school with a good grade Kimberly Ocean had difficulty understanding the schools teaching method and was really struggling. Amber had the ability to find a way to teach her that made sense to her and at the same time boost her self confidence to succeed. We will highly recommend Amber.",
+          student: "Lise and Todd Herring",
+          tutorId: ambreenId
+        }
+        ,
+        {
+          rating: 4,
+          comment: "Hi Amber, I got my Criterion A and C marks back from before the winter break — A: 8 and C: 7. This honestly would not have been possible without your help. Thank you so much!",
+          student: "Hamza",
           tutorId: ambreenId
         }
       );
     }
 
+  
     if (reviewsToCreate.length > 0) {
       await prisma.review.createMany({ data: reviewsToCreate });
       console.log(`Seeded ${reviewsToCreate.length} reviews.`);
