@@ -132,10 +132,17 @@ async function main() {
           comment: "Hi Amber, I got my Criterion A and C marks back from before the winter break — A: 8 and C: 7. This honestly would not have been possible without your help. Thank you so much!",
           student: "Hamza",
           tutorId: ambreenId
+        },
+        {
+          rating: 5,
+          comment: "Hi Amber, I just wanted to send you a message. Thank you very much, Alya was so happy and relaxed, she was excited because her answers were correct 😊 you gave her this feeling that she can do it. She’ll be more than happy to take more classes with you 🌹",
+          student: "Alya Parent",
+          tutorId: ambreenId
         }
       );
     }
 
+  
   
     if (reviewsToCreate.length > 0) {
       await prisma.review.createMany({ data: reviewsToCreate });
