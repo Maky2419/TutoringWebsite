@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { sendEmail } from "../../../../lib/mailer";
+import { env } from "process";
 
 export async function GET(req: Request) {
   try {
@@ -60,6 +61,7 @@ export async function GET(req: Request) {
       <div style="font-family:Arial,sans-serif;line-height:1.5">
         <h2>${subjectLine}</h2>
         <p><strong>Tutor:</strong> ${tutorName}</p>
+        <p><strong>Student Name:</strong> ${booking.studentName}</p>
         <p><strong>Topic:</strong> ${booking.subject}</p>
         <p><strong>Preferred times:</strong> ${booking.preferredTimes}</p>
 
@@ -89,6 +91,12 @@ export async function GET(req: Request) {
     try {
       await sendEmail({
         to: booking.studentEmail,
+        subject: subjectLine,
+        text,
+        html
+      });
+      await sendEmail({
+        to: env.ADMIN_EMAIL,
         subject: subjectLine,
         text,
         html
