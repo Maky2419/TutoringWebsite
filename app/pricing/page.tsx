@@ -183,10 +183,6 @@ export default function PricingPage() {
                 <span className="mt-[2px] inline-block h-2 w-2 rounded-full bg-white/70" />
                 <span>Currency conversions are approximate and shown for convenience.</span>
               </li>
-              <li className="flex gap-2">
-                <span className="mt-[2px] inline-block h-2 w-2 rounded-full bg-white/70" />
-                <span>Exact amount may vary slightly depending on payment method and bank rates.</span>
-              </li>
             </ul>
           </section>
         </div>
