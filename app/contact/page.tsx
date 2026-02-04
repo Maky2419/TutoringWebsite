@@ -103,7 +103,7 @@ export default function ContactPage() {
                   href={`mailto:${EMAIL}?subject=${encodeURIComponent(
                     "Tutoring inquiry"
                   )}&body=${encodeURIComponent(
-                    "Hi K^Cubed,\n\nI’d like to ask about tutoring.\n\nStudent name:\nGrade:\nSubject:\nCountry/Time zone:\nPreferred days/times:\n\nThanks!"
+                    "Hi K-Cubed,\n\nI’d like to ask about tutoring.\n\nStudent name:\nGrade:\nSubject:\nCountry/Time zone:\nPreferred days/times:\n\nThanks!"
                   )}`}
                   className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-black shadow-lg shadow-black/20 transition hover:bg-white/90"
                 >

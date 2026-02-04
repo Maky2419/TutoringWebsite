@@ -5,7 +5,7 @@ export default function NavBar() {
     <nav className="sticky top-0 z-50 bg-black/40 backdrop-blur-lg border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold tracking-wide">
-          K^<span className="text-indigo-400">Cubed</span>
+          K-<span className="text-indigo-400">Cubed</span>
         </Link>
 
         <div className="flex gap-6 items-center text-sm">

@@ -18,7 +18,7 @@ async function main() {
       email: "ekalam569@gmail.com",
       subjects: "MYP Science, IB Economics SL&HL, IB Business Management SL&HL, GSCE Economics, GSCE Business Studies, A Levels Economics, A Levels Business",
       bio: "I am a second-year student currently enrolled in the University of Toronto who genuinely loves learning and sharing that curiosity with others. My teaching style is interactive, using dynamic presentations, exercises, hands on activities and games to make learning engaging, accessible and fun. With strong leadership and mentoring skills as well as a multicultural perspective, I enjoy connecting with students from diverse backgrounds and helping them grow with confidence.",
-      education: "American British Academy, Muscat, Oman (2009 – 2022); Jumeirah English Speaking School, Dubai, UAE (2022 – 2024); The University of Toronto (2024 – Current)",
+      education: "BA in Business and Economics - The University of Toronto",
       hourlyRate: 50
     },
     {
@@ -33,8 +33,8 @@ async function main() {
   name: "Kashif Kalam",
   email: "Kashif.Kalam@pwc.com",
   subjects: "Accounting, Finance, Audit, Risk Management, Investments",
-  bio: "With over 35 years of experience across the GCC and South Asia, Kashif brings deep expertise in accounting, assurance, financial services, and risk management. He has worked extensively in Oman, the UAE, Saudi Arabia, Bahrain, and Pakistan, building strong relationships at Board, C-suite, and government levels. Currently leading Other Assurance Services for Oman and Bahrain, he specializes in audit, capital markets, accounting advisory, digital transformation, internal audit, and enterprise risk management. His background includes leading large assurance practices, managing high-value client portfolios, and mentoring large professional teams. Passionate about entrepreneurship and investing, Kashif closely follows global markets, fixed income, FX, commodities, and real estate trends, with a practical, real-world approach to finance and regulation.",
-  education: "Chartered Accountant – Institute of Chartered Accountants of Pakistan",
+  bio: "With over 35 years of experience across the GCC and South Asia, Kashif brings deep expertise in accounting, assurance, financial services, and risk management into his teaching. His approach is thorough and concept-driven, with a strong emphasis on breaking down complex topics step by step and reinforcing them through real-world examples drawn from his extensive professional experience. He teaches in a detailed and rigorous manner, ensuring students not only understand the “how,” but also the “why” behind financial concepts.\n\n Kashif regularly uses practical case scenarios, market examples, and regulatory situations to make abstract ideas concrete and relatable. His teaching style is structured, example-heavy, and discussion-oriented, helping students build strong foundational understanding, confidence, and the ability to apply concepts in real academic or professional settings.",
+  education: "Chartered Accountant – Fellow member of the Institute of Chartered Accountants",
   hourlyRate: 50
 }
   ];

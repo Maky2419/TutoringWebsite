@@ -16,7 +16,7 @@ export default function HomePage() {
             <div className="mx-auto max-w-3xl text-center">
               <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-medium text-white/80">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                K^Cubed • Book tutoring without the back-and-forth
+                K-Cubed • Book tutoring without the back-and-forth
               </p>
 
               <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
@@ -107,7 +107,7 @@ export default function HomePage() {
                   Built like a real product, not a school project
                 </h3>
                 <p className="mt-3 text-sm text-white/70">
-                  K^Cubed is designed around clarity: students know what they’re booking, tutors know what to expect,
+                  K-Cubed is designed around clarity: students know what they’re booking, tutors know what to expect,
                   and your app stays scalable.
                 </p>
 

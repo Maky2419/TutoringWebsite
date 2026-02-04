@@ -3,7 +3,7 @@ import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 
 export const metadata = {
-  title: "K^Cubed",
+  title: "K-Cubed",
   //description: "Tutoring service skeleton (Next.js + Prisma + Postgres)."
 };
 

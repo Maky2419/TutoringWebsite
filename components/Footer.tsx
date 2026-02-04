@@ -3,7 +3,7 @@ export default function Footer() {
     <footer className="border-t border-white/10 mt-32">
       <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm text-white/60">
         <div>
-          <h3 className="font-semibold text-white mb-3">K^Cubed</h3>
+          <h3 className="font-semibold text-white mb-3">K-Cubed</h3>
           <p>Premium tutoring, made simple.</p>
         </div>
 
