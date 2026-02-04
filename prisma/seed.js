@@ -16,9 +16,9 @@ async function main() {
     {
       name: "Emaan Kalam",
       email: "ekalam569@gmail.com",
-      subjects: "Biology, Chemistry, Study Skills",
-      bio: "Supportive coaching + clear explanations. Great for building confidence and exam routines.",
-      education: "BSc Biology – University of British Columbia",
+      subjects: "MYP Science, IB Economics SL&HL, IB Business Management SL&HL, GSCE Economics, GSCE Business Studies, A Levels Economics, A Levels Business",
+      bio: "I am a second-year student currently enrolled in the University of Toronto who genuinely loves learning and sharing that curiosity with others. My teaching style is interactive, using dynamic presentations, exercises, hands on activities and games to make learning engaging, accessible and fun. With strong leadership and mentoring skills as well as a multicultural perspective, I enjoy connecting with students from diverse backgrounds and helping them grow with confidence.",
+      education: "American British Academy, Muscat, Oman (2009 – 2022); Jumeirah English Speaking School, Dubai, UAE (2022 – 2024); The University of Toronto (2024 – Current)",
       hourlyRate: 50
     },
     {
@@ -28,7 +28,15 @@ async function main() {
       bio: "Helps you plan, draft, and polish writing — from structure to sentence-level clarity.",
       education: "BA English – University of British Columbia",
       hourlyRate: 60
-    }
+    },
+    {
+  name: "Kashif Kalam",
+  email: "Kashif.Kalam@pwc.com",
+  subjects: "Accounting, Finance, Audit, Risk Management, Investments",
+  bio: "With over 35 years of experience across the GCC and South Asia, Kashif brings deep expertise in accounting, assurance, financial services, and risk management. He has worked extensively in Oman, the UAE, Saudi Arabia, Bahrain, and Pakistan, building strong relationships at Board, C-suite, and government levels. Currently leading Other Assurance Services for Oman and Bahrain, he specializes in audit, capital markets, accounting advisory, digital transformation, internal audit, and enterprise risk management. His background includes leading large assurance practices, managing high-value client portfolios, and mentoring large professional teams. Passionate about entrepreneurship and investing, Kashif closely follows global markets, fixed income, FX, commodities, and real estate trends, with a practical, real-world approach to finance and regulation.",
+  education: "Chartered Accountant – Institute of Chartered Accountants of Pakistan",
+  hourlyRate: 50
+}
   ];
 
   // Upsert tutors
@@ -148,6 +156,13 @@ async function main() {
           student: "Alya Parent",
           tutorId: ambreenId,
            createdAt: new Date("2026-1-18"),
+        },
+        {
+          rating: 5,
+          comment: "I am happy to recommend Ms. Ambereen Kalam, who has been my son’s private mathematics tutor.\n\nShe explains math in a very clear and patient way, breaking down difficult topics into simple steps that are easy to understand. Because of her approach, my son became more confident in math, his understanding improved, and his overall attitude toward the subject changed positively.\n\nMs. Ambereen is supportive, reliable, and genuinely cares about her students’ progress. I truly appreciate the positive impact she has had on my son’s learning and would gladly recommend her to any parent looking for a good math tutor.",
+          student: "Halim Toptac",
+          tutorId: ambreenId,
+           createdAt: new Date("2026-2-03"),
         }
       );
     }
