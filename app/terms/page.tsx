@@ -15,7 +15,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-white text-xl font-semibold">Tutoring services</h2>
             <p className="mt-3">
-              TutorAmber provides educational tutoring services online and in select
+              K-Cubed provides educational tutoring services online and in select
               in-person locations. We do not guarantee specific grades or exam results,
               but we commit to providing structured, supportive instruction.
             </p>

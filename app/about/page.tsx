@@ -9,7 +9,7 @@ export default function AboutPage() {
       <div className="pointer-events-none absolute -bottom-40 right-[-120px] h-[520px] w-[520px] rounded-full bg-purple-500/20 blur-3xl" />
 
       <PageHeader
-        title="About TutorAmber"
+        title="About K-Cubed"
         subtitle="A story that began with one tutor — and grew into a global learning community."
       />
 
@@ -21,7 +21,7 @@ export default function AboutPage() {
             <h2 className="text-xl font-semibold text-white">How it all began</h2>
             <div className="mt-4 space-y-4 text-white/80 leading-relaxed">
               <p>
-                TutorAmber began with one person and one simple idea: students learn best when they
+                K-Cubed began with one person and one simple idea: students learn best when they
                 feel understood. Ambreen Naseem started tutoring independently, helping students
                 work through challenging subjects while building confidence and clarity.
               </p>
@@ -46,7 +46,7 @@ export default function AboutPage() {
               <h3 className="text-lg font-semibold text-white">An international tutoring team</h3>
               <p className="mt-3 text-white/80">
                 Ambreen began her education in the Middle East and now teaches students across the
-                globe. TutorAmber supports learners in the{" "}
+                globe. K-Cubed supports learners in the{" "}
                 <span className="text-white font-semibold">United States</span>,{" "}
                 <span className="text-white font-semibold">Germany</span>,{" "}
                 <span className="text-white font-semibold">Spain</span>, and many more.

@@ -7,7 +7,7 @@ import { useState } from "react";
 export default function ContactPage() {
   // ✅ Replace these with your real details if you want
   const WHATSAPP_NUMBER_E164 = "+971500000000"; // e.g. +97150XXXXXXX
-  const EMAIL = "tutoramber@example.com"; // e.g. tutoramber@gmail.com
+  const EMAIL = "K-Cubed@example.com"; // e.g. tutoramber@gmail.com
 
   const [copied, setCopied] = useState<null | "whatsapp" | "email">(null);
 
@@ -103,7 +103,7 @@ export default function ContactPage() {
                   href={`mailto:${EMAIL}?subject=${encodeURIComponent(
                     "Tutoring inquiry"
                   )}&body=${encodeURIComponent(
-                    "Hi TutorAmber,\n\nI’d like to ask about tutoring.\n\nStudent name:\nGrade:\nSubject:\nCountry/Time zone:\nPreferred days/times:\n\nThanks!"
+                    "Hi K^Cubed,\n\nI’d like to ask about tutoring.\n\nStudent name:\nGrade:\nSubject:\nCountry/Time zone:\nPreferred days/times:\n\nThanks!"
                   )}`}
                   className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-black shadow-lg shadow-black/20 transition hover:bg-white/90"
                 >
