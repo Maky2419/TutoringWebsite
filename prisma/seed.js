@@ -19,23 +19,23 @@ async function main() {
       subjects: "MYP Science, IB Economics SL&HL, IB Business Management SL&HL, GSCE Economics, GSCE Business Studies, A Levels Economics, A Levels Business",
       bio: "I am a second-year student currently enrolled in the University of Toronto who genuinely loves learning and sharing that curiosity with others. My teaching style is interactive, using dynamic presentations, exercises, hands on activities and games to make learning engaging, accessible and fun. With strong leadership and mentoring skills as well as a multicultural perspective, I enjoy connecting with students from diverse backgrounds and helping them grow with confidence.",
       education: "BA in Business and Economics - The University of Toronto",
-      hourlyRate: 50
+      hourlyRate: 55
     },
     {
       name: "Ambreen Naseem",
       email: "Amber_kashif@yahoo.com",
-      subjects: "English, Essay Writing, IELTS",
-      bio: "Helps you plan, draft, and polish writing — from structure to sentence-level clarity.",
+      subjects: "Mathematics MYP, Mathematics PYP",
+      bio: "I am an experienced private tutor with over 15 years of working with elementary and middle school students across IB, British, and American curricula. I specialize in one-to-one mathematics tutoring, helping students build strong foundations, confidence, and a genuine understanding of concepts rather than rote learning.\n\nMy tutoring approach is highly personalized—each lesson is carefully tailored to the student’s learning style, academic goals, and pace. I have extensive experience supporting students with learning differences, including dyslexia, and I use engaging, multi-sensory strategies to make learning meaningful and accessible.\n\nAlongside my tutoring practice, I have worked in international schools as a substitute teacher, teaching assistant, and homeroom teacher. This classroom experience strengthens my tutoring by allowing me to align lessons with school expectations while addressing individual gaps.\n\nMy goal is not only to improve grades, but to help students become independent, confident learners who feel capable and motivated in mathematics.",
       education: "BA English – University of British Columbia",
-      hourlyRate: 60
+      hourlyRate: 55
     },
     {
-  name: "Kashif Kalam",
+  name: "Kashif Qureshi",
   email: "Kashif.Kalam@pwc.com",
   subjects: "Accounting, Finance, Audit, Risk Management, Investments",
   bio: "With over 35 years of experience across the GCC and South Asia, Kashif brings deep expertise in accounting, assurance, financial services, and risk management into his teaching. His approach is thorough and concept-driven, with a strong emphasis on breaking down complex topics step by step and reinforcing them through real-world examples drawn from his extensive professional experience. He teaches in a detailed and rigorous manner, ensuring students not only understand the “how,” but also the “why” behind financial concepts.\n\n Kashif regularly uses practical case scenarios, market examples, and regulatory situations to make abstract ideas concrete and relatable. His teaching style is structured, example-heavy, and discussion-oriented, helping students build strong foundational understanding, confidence, and the ability to apply concepts in real academic or professional settings.",
   education: "Chartered Accountant – Fellow member of the Institute of Chartered Accountants",
-  hourlyRate: 50
+  hourlyRate: 55
 }
   ];
 
