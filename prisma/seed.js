@@ -104,15 +104,8 @@ async function main() {
       reviewsToCreate.push(
         {
           rating: 5,
-          comment: "Amazing for study skills and keeping me on track.",
-          student: "Amina",
-          tutorId: emaanId,
-           createdAt: new Date("2026-1-18"),
-        },
-        {
-          rating: 4,
-          comment: "Very supportive and organized sessions.",
-          student: "Yusuf",
+          comment: "Emaan is so helpful for me and Hamza loves her so much . May Allah Protect her. ",
+          student: "Halima mother of Hamza",
           tutorId: emaanId,
            createdAt: new Date("2026-1-18"),
         }
