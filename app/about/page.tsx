@@ -21,14 +21,10 @@ export default function AboutPage() {
             <h2 className="text-xl font-semibold text-white">How it all began</h2>
             <div className="mt-4 space-y-4 text-white/80 leading-relaxed">
               <p>
-                K-Cubed began with one person and one simple idea: students learn best when they
-                feel understood. Ambreen Naseem started tutoring independently, helping students
-                work through challenging subjects while building confidence and clarity.
-              </p>
+                My teaching journey began in my home country during my own student years and developed into professional work within international school settings across multiple regions. I have over a decade of experience working in an IB World School in Muscat, Oman, in roles including Learning Support Teacher, where I provided individualized and small-group instruction primarily in Mathematics and English. I hold a Master’s degree in Education and have completed specialised professional development in mathematics education, including training with Jo Boaler, which has strongly influenced my instructional approach.
+                </p>
               <p>
-                After tutoring more than 15–20 students, demand quickly grew. Word spread through
-                families, referrals, and student success stories. What started as one-on-one
-                tutoring evolved into something much bigger.
+                At the core of my teaching practice is careful analysis of each learner’s needs, strengths, and learning barriers. I design personalized learning plans that focus on conceptual understanding rather than rote procedures, with a particular emphasis on reducing mathematics anxiety and replacing fear with confidence and curiosity. My goal is to help students experience mathematics as meaningful, accessible, and enjoyable. Now based in Dubai, I work as a full-time private tutor, supporting students across the UAE, Oman, and the United States through long-standing referrals and word of mouth.
               </p>
               <p>
                 To keep up with this growth, Ambreen brought together a small team of tutors who

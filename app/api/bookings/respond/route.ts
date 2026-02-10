@@ -58,24 +58,54 @@ export async function GET(req: Request) {
         : "Your tutoring request was declined";
 
     const html = `
-      <div style="font-family:Arial,sans-serif;line-height:1.5">
-        <h2>${subjectLine}</h2>
+  <div style="font-family:Arial,sans-serif;line-height:1.5">
+    
+
+    ${
+      newStatus === "ACCEPTED"
+        ? `
+        <p>Dear ${booking.studentName},</p>
+
+        <p>
+          <strong>Great news — your tutor has accepted your tutoring request with K-Cubed!</strong>
+        </p>
+
+        <p>
+          Your tutor will be reaching out to you shortly using the email address or phone number you provided when submitting your request.
+          They will follow up directly with more details about scheduling, availability, and next steps.
+          Please keep an eye on your inbox (and spam/junk folder just in case) for their message.
+        </p>
+
+        <p>
+          In the meantime, feel free to sit tight while your tutor gets in touch.
+          If you have any questions or need assistance with anything else, our K-Cubed Help Desk is always here to support you.
+          You’re welcome to reach out to us at any time, and we’ll be happy to help.
+        </p>
+
+        <p>
+          Thank you again for choosing K-Cubed — we’re excited to support you and hope you have a great tutoring experience ahead.
+        </p>
+
+        <p>Warm regards,<br/>K-Cubed Team</p>
+        `
+        : `
         <p><strong>Tutor:</strong> ${tutorName}</p>
         <p><strong>Student Name:</strong> ${booking.studentName}</p>
         <p><strong>Topic:</strong> ${booking.subject}</p>
         <p><strong>Preferred times:</strong> ${booking.preferredTimes}</p>
 
-        ${
-          newStatus === "ACCEPTED"
-            ? `<p style="margin-top:12px">The tutor accepted your request. They’ll reach out soon to confirm a time.</p>`
-            : `<p style="margin-top:12px">Unfortunately, the tutor declined this request. Please try another tutor/time.</p>`
-        }
+        <p style="margin-top:12px">
+          Unfortunately, the tutor declined this request. Please try another tutor/time.
+        </p>
 
         <p style="margin-top:18px;color:#666;font-size:12px">
           If you didn’t request tutoring, you can ignore this email.
         </p>
-      </div>
-    `;
+        `
+    }
+  </div>
+`;
+
 
     // ✅ REQUIRED: include text
     const text = [
