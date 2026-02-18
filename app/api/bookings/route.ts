@@ -95,55 +95,44 @@ export async function POST(req: Request) {
         .filter(Boolean)
         .join("\n");
 
-      const adminEmail = process.env.ADMIN_EMAIL;
+const adminEmail = process.env.ADMIN_EMAIL;
 
+const tutorAndAdmin = adminEmail ? [tutor.email, adminEmail] : [tutor.email];
+
+// 1) Tutor + Admin: request with decision links
 await sendEmail({
-  to: adminEmail ? [tutor.email, adminEmail] : tutor.email,
+  to: tutorAndAdmin,
   subject: `New tutoring request: ${subject}`,
   text,
-  html
+  html,
+  replyTo: studentEmail
 });
-// ✅ confirmation email to student
-// student confirmation email
+
+// 2) Student: thank-you / received confirmation
 await sendEmail({
   to: studentEmail,
   subject: "Your K-Cubed tutoring request has been received",
   text: `Dear ${studentName},
 
-Thank you for reaching out to K-Cubed! We’re delighted to let you know that your tutoring request has been successfully received and shared with the tutor you selected.
+Thank you for reaching out to K-Cubed! We received your tutoring request and sent it to the tutor you selected.
 
-The tutor will review your request and get back to you within 2–3 business days to confirm availability and next steps.
+Next step: the tutor will review it and you’ll receive an email once they accept or decline.
 
-If you have any questions in the meantime, feel free to reply to this email.
+If you have any questions, reply to this email.
 
 Warm regards,
 K-Cubed Team`,
   html: `
     <div style="font-family:Arial,sans-serif;line-height:1.6">
       <p>Dear ${studentName},</p>
-
-      <p>
-      Thank you for reaching out to <strong>K-Cubed</strong>! We’re delighted to let you know that your tutoring request has been successfully received and shared with the tutor you selected.
-      </p>
-
-      <p>
-      The tutor will review your request and get back to you within 
-      <strong>2–3 business days</strong> to confirm availability and next steps. 
-      We truly appreciate your patience and hope to connect you as quickly as possible so you can begin your sessions with confidence.
-      </p>
-
-      <p>
-      If you have any questions in the meantime or would like to add more details to your request, please don’t hesitate to reach out. Our K-Cubed Help Desk team is always here to support you.
-      </p>
-
-      <p>
-      Thank you again for choosing K-Cubed — we look forward to supporting you on your learning journey.
-      </p>
-
+      <p>Thank you for reaching out to <strong>K-Cubed</strong>! We received your tutoring request and sent it to the tutor you selected.</p>
+      <p><strong>Next step:</strong> the tutor will review it and you’ll receive an email once they accept or decline.</p>
+      <p>If you have any questions, simply reply to this email.</p>
       <p>Warm regards,<br/>K-Cubed Team</p>
     </div>
   `
 });
+
 
 
 

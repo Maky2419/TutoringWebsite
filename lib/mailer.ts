@@ -1,36 +1,42 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-function requiredEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing environment variable: ${name}`);
-  return v;
-}
+type To = string | string[];
 
-export function getMailer() {
-  const host = requiredEnv("SMTP_HOST");
-  const port = Number(requiredEnv("SMTP_PORT"));
-  const user = requiredEnv("SMTP_USER");
-  const pass = requiredEnv("SMTP_PASS");
+type Attachment = {
+  filename: string;
+  content: Buffer; // raw bytes
+};
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass }
+export async function sendEmail(args: {
+  to: To;
+  subject: string;
+  text: string;
+  html?: string;
+  replyTo?: string;
+  attachments?: Attachment[];
+}) {
+  const resendKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+
+  if (!resendKey) throw new Error("Missing RESEND_API_KEY");
+  if (!from) throw new Error("Missing EMAIL_FROM");
+
+  const resend = new Resend(resendKey);
+
+  const toList = Array.isArray(args.to) ? args.to : [args.to];
+
+  const { error } = await resend.emails.send({
+    from,
+    to: toList,
+    subject: args.subject,
+    text: args.text,
+    html: args.html,
+    reply_to: args.replyTo,
+    attachments: args.attachments?.map(a => ({
+      filename: a.filename,
+      content: a.content.toString("base64"),
+    })),
   });
-}
 
-export function getFromAddress(): string {
-  return process.env.SMTP_FROM || requiredEnv("SMTP_USER");
-}
-
-export async function sendEmail(params: { to: string; subject: string; text: string; html?: string }) {
-  const transporter = getMailer();
-  await transporter.sendMail({
-    from: getFromAddress(),
-    to: params.to,
-    subject: params.subject,
-    text: params.text,
-    html: params.html
-  });
+  if (error) throw new Error(error.message || "Resend send failed");
 }

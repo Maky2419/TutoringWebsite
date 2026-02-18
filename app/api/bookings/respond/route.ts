@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { sendEmail } from "../../../../lib/mailer";
-import { env } from "process";
 
 export async function GET(req: Request) {
   try {
@@ -26,7 +25,7 @@ export async function GET(req: Request) {
 
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { tutor: true }
+      include: { tutor: true },
     });
 
     if (!booking) {
@@ -45,96 +44,117 @@ export async function GET(req: Request) {
 
     const newStatus = action === "accept" ? "ACCEPTED" : "DECLINED";
 
+    // Update status
     await prisma.booking.update({
       where: { id: bookingId },
-      data: { status: newStatus }
+      data: { status: newStatus },
     });
 
     const tutorName = booking.tutor?.name || "Your tutor";
+    const tutorEmail = booking.tutor?.email || "";
 
-    const subjectLine =
+    // Student-facing subject + copy
+    const studentSubject =
       newStatus === "ACCEPTED"
         ? "Your tutoring request was accepted ✅"
-        : "Your tutoring request was declined";
+        : "Update: your tutoring request was declined ❌";
 
-    const html = `
-  <div style="font-family:Arial,sans-serif;line-height:1.5">
-    
+    const studentText =
+      newStatus === "ACCEPTED"
+        ? `Hi ${booking.studentName},
 
-    ${
+Good news — ${tutorName} accepted your tutoring request on K-Cubed.
+
+They’ll reach out to you shortly using the contact details you provided.
+
+Warm regards,
+K-Cubed Team`
+        : `Hi ${booking.studentName},
+
+Unfortunately, ${tutorName} declined your tutoring request on K-Cubed.
+
+Please submit another request with a different time/tutor.
+
+Warm regards,
+K-Cubed Team`;
+
+    const studentHtml =
       newStatus === "ACCEPTED"
         ? `
-        <p>Dear ${booking.studentName},</p>
-
-        <p>
-          <strong>Great news — your tutor has accepted your tutoring request with K-Cubed!</strong>
-        </p>
-
-        <p>
-          Your tutor will be reaching out to you shortly using the email address or phone number you provided when submitting your request.
-          They will follow up directly with more details about scheduling, availability, and next steps.
-          Please keep an eye on your inbox (and spam/junk folder just in case) for their message.
-        </p>
-
-        <p>
-          In the meantime, feel free to sit tight while your tutor gets in touch.
-          If you have any questions or need assistance with anything else, our K-Cubed Help Desk is always here to support you.
-          You’re welcome to reach out to us at any time, and we’ll be happy to help.
-        </p>
-
-        <p>
-          Thank you again for choosing K-Cubed — we’re excited to support you and hope you have a great tutoring experience ahead.
-        </p>
-
-        <p>Warm regards,<br/>K-Cubed Team</p>
-        `
+          <div style="font-family:Arial,sans-serif;line-height:1.6">
+            <p>Hi ${booking.studentName},</p>
+            <p><strong>Good news — ${tutorName} accepted your tutoring request on K-Cubed.</strong></p>
+            <p>They’ll reach out to you shortly using the contact details you provided.</p>
+            <p>Warm regards,<br/>K-Cubed Team</p>
+          </div>`
         : `
-        <p><strong>Tutor:</strong> ${tutorName}</p>
-        <p><strong>Student Name:</strong> ${booking.studentName}</p>
-        <p><strong>Topic:</strong> ${booking.subject}</p>
-        <p><strong>Preferred times:</strong> ${booking.preferredTimes}</p>
+          <div style="font-family:Arial,sans-serif;line-height:1.6">
+            <p>Hi ${booking.studentName},</p>
+            <p><strong>Unfortunately, ${tutorName} declined your tutoring request.</strong></p>
+            <p>Please submit another request with a different time/tutor.</p>
+            <p>Warm regards,<br/>K-Cubed Team</p>
+          </div>`;
 
-        <p style="margin-top:12px">
-          Unfortunately, the tutor declined this request. Please try another tutor/time.
-        </p>
+    // Admin notification
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminSubject = `Booking ${newStatus}: ${booking.subject}`;
+    const adminText = `Booking ${newStatus}
 
-        <p style="margin-top:18px;color:#666;font-size:12px">
-          If you didn’t request tutoring, you can ignore this email.
-        </p>
-        `
-    }
-  </div>
+Tutor: ${tutorName}${tutorEmail ? ` (${tutorEmail})` : ""}
+Student: ${booking.studentName} (${booking.studentEmail})
+Subject: ${booking.subject}
+Preferred times: ${booking.preferredTimes}
 `;
 
-
-    // ✅ REQUIRED: include text
-    const text = [
-      subjectLine,
-      `Tutor: ${tutorName}`,
-      `Topic: ${booking.subject}`,
-      `Preferred times: ${booking.preferredTimes}`,
+    // Tutor confirmation (optional)
+    const tutorSubject =
       newStatus === "ACCEPTED"
-        ? "The tutor accepted your request. They’ll reach out soon to confirm a time."
-        : "The tutor declined this request. Please try another tutor/time."
-    ].join("\n");
+        ? "You accepted a tutoring request ✅"
+        : "You declined a tutoring request";
+
+    const tutorText = `Hi ${tutorName},
+
+You ${newStatus === "ACCEPTED" ? "accepted" : "declined"} the request from ${booking.studentName} (${booking.studentEmail}) for: ${booking.subject}
+
+Preferred times: ${booking.preferredTimes}
+
+Warm regards,
+K-Cubed Team`;
 
     try {
+      // 1) Student
       await sendEmail({
         to: booking.studentEmail,
-        subject: subjectLine,
-        text,
-        html
-      });
-      await sendEmail({
-        to: env.ADMIN_EMAIL,
-        subject: subjectLine,
-        text,
-        html
+        subject: studentSubject,
+        text: studentText,
+        html: studentHtml,
       });
 
-      console.log("✅ Student notified:", booking.studentEmail);
+      await sleep(600); // ✅ throttle to avoid Resend 2 req/sec limit
+
+      // 2) Tutor confirmation
+      if (tutorEmail) {
+        await sendEmail({
+          to: tutorEmail,
+          subject: tutorSubject,
+          text: tutorText,
+        });
+
+        await sleep(600); // ✅ throttle
+      }
+
+      // 3) Admin notification
+      if (adminEmail) {
+        await sendEmail({
+          to: adminEmail,
+          subject: adminSubject,
+          text: adminText,
+        });
+      }
+
+      console.log("✅ Decision emails sent:", { bookingId, newStatus });
     } catch (e) {
-      console.error("❌ Failed to email student:", e);
+      console.error("❌ Failed to send decision emails:", e);
     }
 
     return htmlPage(
@@ -146,6 +166,10 @@ export async function GET(req: Request) {
     console.error("❌ respond route failed:", e);
     return htmlPage(500, "Server error", e?.message || "Unknown error");
   }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function htmlPage(status: number, title: string, message: string) {
@@ -172,7 +196,7 @@ function htmlPage(status: number, title: string, message: string) {
 
   return new NextResponse(body, {
     status,
-    headers: { "Content-Type": "text/html; charset=utf-8" }
+    headers: { "Content-Type": "text/html; charset=utf-8" },
   });
 }
 
