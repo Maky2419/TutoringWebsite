@@ -1,0 +1,7 @@
+{
+  "/tutors/page": "app/tutors/page.js",
+  "/page": "app/page.js",
+  "/api/tutors/route": "app/api/tutors/route.js",
+  "/apply/page": "app/apply/page.js",
+  "/book/page": "app/book/page.js"
+}
