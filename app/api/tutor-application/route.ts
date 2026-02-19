@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     const { error } = await resend.emails.send({
       from: emailFrom,
       to: [adminEmail],
-      reply_to: email,
+      replyTo: email,
       subject: subjectLine,
       text: textBody,
       attachments: [

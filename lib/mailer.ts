@@ -31,7 +31,7 @@ export async function sendEmail(args: {
     subject: args.subject,
     text: args.text,
     html: args.html,
-    reply_to: args.replyTo,
+    replyTo: args.replyTo,
     attachments: args.attachments?.map(a => ({
       filename: a.filename,
       content: a.content.toString("base64"),
