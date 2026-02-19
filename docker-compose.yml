@@ -47,7 +47,7 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       SMTP_FROM: ${SMTP_USER}
-      APP_BASE_URL: http://localhost:3000
+      APP_BASE_URL: https://kcubed.ca
     command: >
       sh -c "
         npx prisma migrate deploy &&
