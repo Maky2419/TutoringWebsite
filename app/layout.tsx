@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   },
   description:
     "K-Cubed Tutoring provides personalized academic support for high school and university students worldwide.",
+     icons: {
+    icon: "/favicon.png",
+  },
   keywords: [
     "K-Cubed Tutoring",
     "K Cubed Tutoring",
