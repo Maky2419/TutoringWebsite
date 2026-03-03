@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     let emailError: string | null = null;
 
     try {
-      const baseUrl = process.env.APP_BASE_URL;
+      const baseUrl = process.env.APP_BASE_URL || "https://kcubed.ca";
 
       // ✅ Your respond route path:
       const acceptUrl = `${baseUrl}/api/bookings/respond?action=accept&id=${booking.id}&token=${acceptToken}`;
