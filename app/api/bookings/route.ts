@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     let emailError: string | null = null;
 
     try {
-      const baseUrl = process.env.APP_BASE_URL || "http://localhost:3000";
+      const baseUrl = process.env.APP_BASE_URL;
 
       // ✅ Your respond route path:
       const acceptUrl = `${baseUrl}/api/bookings/respond?action=accept&id=${booking.id}&token=${acceptToken}`;
@@ -114,21 +114,21 @@ await sendEmail({
   subject: "Your K-Cubed tutoring request has been received",
   text: `Dear ${studentName},
 
-Thank you for reaching out to K-Cubed! We received your tutoring request and sent it to the tutor you selected.
+Thank you for reaching out to K-Cubed Tutoring! We received your tutoring request and sent it to the tutor you selected.
 
 Next step: the tutor will review it and you’ll receive an email once they accept or decline.
 
 If you have any questions, reply to this email.
 
 Warm regards,
-K-Cubed Team`,
+K-Cubed Tutoring Team`,
   html: `
     <div style="font-family:Arial,sans-serif;line-height:1.6">
       <p>Dear ${studentName},</p>
-      <p>Thank you for reaching out to <strong>K-Cubed</strong>! We received your tutoring request and sent it to the tutor you selected.</p>
+      <p>Thank you for reaching out to <strong>K-Cubed Tutoring</strong>! We received your tutoring request and sent it to the tutor you selected.</p>
       <p><strong>Next step:</strong> the tutor will review it and you’ll receive an email once they accept or decline.</p>
       <p>If you have any questions, simply reply to this email.</p>
-      <p>Warm regards,<br/>K-Cubed Team</p>
+      <p>Warm regards,<br/>K-Cubed Tutoring Team</p>
     </div>
   `
 });

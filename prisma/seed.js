@@ -18,7 +18,7 @@ async function main() {
       email: "ekalam569@gmail.com",
       subjects: "MYP Science, IB Economics SL&HL, IB Business Management SL&HL, GSCE Economics, GSCE Business Studies, A Levels Economics, A Levels Business",
       bio: "I am a second-year student currently enrolled in the University of Toronto who genuinely loves learning and sharing that curiosity with others. My teaching style is interactive, using dynamic presentations, exercises, hands on activities and games to make learning engaging, accessible and fun. With strong leadership and mentoring skills as well as a multicultural perspective, I enjoy connecting with students from diverse backgrounds and helping them grow with confidence.",
-      education: "BA in Business and Economics - The University of Toronto",
+      education: "BCOM in Accounting and Economics - The University of Toronto",
       hourlyRate: 55
     },
     {
@@ -26,9 +26,17 @@ async function main() {
       email: "Amber_kashif@yahoo.com",
       subjects: "Mathematics MYP, Mathematics PYP",
       bio: "I am an experienced private tutor with over 15 years of working with elementary and middle school students across IB, British, and American curricula. I specialize in one-to-one mathematics tutoring, helping students build strong foundations, confidence, and a genuine understanding of concepts rather than rote learning.\n\nMy tutoring approach is highly personalized—each lesson is carefully tailored to the student’s learning style, academic goals, and pace. I have extensive experience supporting students with learning differences, including dyslexia, and I use engaging, multi-sensory strategies to make learning meaningful and accessible.\n\nAlongside my tutoring practice, I have worked in international schools as a substitute teacher, teaching assistant, and homeroom teacher. This classroom experience strengthens my tutoring by allowing me to align lessons with school expectations while addressing individual gaps.\n\nMy goal is not only to improve grades, but to help students become independent, confident learners who feel capable and motivated in mathematics.",
-      education: "BA English – University of British Columbia",
+      education: "Masters in Education - Buffalo state University, USA | Masters in Business Administration - Institute of Business Administration, Pakistan",
       hourlyRate: 55
     },
+    {
+  name: "Margot Espinasse",
+  email: "your-email@example.com",
+  subjects: "IB French (Ab Initio, SL, HL), French as a Foreign Language (FLE), CNED French Curriculum",
+  bio: "I am a French educator with over 13 years of experience teaching the IB curriculum, both as a teacher and as a parent of two daughters who successfully graduated from the IB program. I hold a diploma and certificates in FLE (Français Langue Étrangère – French as a Foreign Language), and I am passionate about supporting students in achieving fluency, confidence, and cultural understanding in French.\n\nThroughout my career, I have taught at the French Omani Center, ABA Muscat (as a substitute teacher for Grades 6–12 and as an IB French Ab Initio teacher for Grades 11 and 12), Riffa Views International School (IB Higher Level), and have also supported students enrolled in the CNED French curriculum. In addition, I have extensive experience as a private tutor, complementing school instruction with personalized, targeted support.\n\nAs a native French speaker, I provide authentic language instruction with a true French accent and a deep understanding of French culture from within. I teach both online and in person (based in Cyprus) and strive to remain flexible, adapting to each student’s schedule and learning needs.\n\nMy goal is to help students not only succeed academically but also develop a genuine appreciation for the French language and culture.",
+  education: "Diploma and Certificates in FLE (Français Langue Étrangère)",
+  hourlyRate: 60
+}, 
     {
   name: "Kashif Qureshi",
   email: "Kashif.Kalam@pwc.com",
@@ -70,6 +78,7 @@ async function main() {
     const ahsanId = tutorIdByEmail.get("ahsankalam04@gmail.com");
     const emaanId = tutorIdByEmail.get("ekalam569@gmail.com");
     const ambreenId = tutorIdByEmail.get("Amber_kashif@yahoo.com");
+    //const margotId = tutorIdByEmail.get("");
 
     const reviewsToCreate = [];
 

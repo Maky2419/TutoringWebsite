@@ -65,20 +65,20 @@ export async function GET(req: Request) {
       newStatus === "ACCEPTED"
         ? `Hi ${booking.studentName},
 
-Good news — ${tutorName} accepted your tutoring request on K-Cubed.
+Good news — ${tutorName} accepted your tutoring request on K-Cubed Tutoring.
 
 They’ll reach out to you shortly using the contact details you provided.
 
 Warm regards,
-K-Cubed Team`
+K-Cubed Tutoring Team`
         : `Hi ${booking.studentName},
 
-Unfortunately, ${tutorName} declined your tutoring request on K-Cubed.
+Unfortunately, ${tutorName} declined your tutoring request on K-Cubed Tutoring.
 
 Please submit another request with a different time/tutor.
 
 Warm regards,
-K-Cubed Team`;
+K-Cubed Tutoring Team`;
 
     const studentHtml =
       newStatus === "ACCEPTED"
@@ -87,14 +87,14 @@ K-Cubed Team`;
             <p>Hi ${booking.studentName},</p>
             <p><strong>Good news — ${tutorName} accepted your tutoring request on K-Cubed.</strong></p>
             <p>They’ll reach out to you shortly using the contact details you provided.</p>
-            <p>Warm regards,<br/>K-Cubed Team</p>
+            <p>Warm regards,<br/>K-Cubed Tutoring Team</p>
           </div>`
         : `
           <div style="font-family:Arial,sans-serif;line-height:1.6">
             <p>Hi ${booking.studentName},</p>
             <p><strong>Unfortunately, ${tutorName} declined your tutoring request.</strong></p>
             <p>Please submit another request with a different time/tutor.</p>
-            <p>Warm regards,<br/>K-Cubed Team</p>
+            <p>Warm regards,<br/>K-Cubed Tutoring Team</p>
           </div>`;
 
     // Admin notification
@@ -121,7 +121,7 @@ You ${newStatus === "ACCEPTED" ? "accepted" : "declined"} the request from ${boo
 Preferred times: ${booking.preferredTimes}
 
 Warm regards,
-K-Cubed Team`;
+K-Cubed Tutoring Team`;
 
     try {
       // 1) Student
