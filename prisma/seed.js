@@ -39,7 +39,7 @@ async function main() {
 }, 
     {
   name: "Margot Espinasse",
-  email: "your-email@example.com",
+  email: "margot.e@wanadoo.fr",
   subjects: "IB French (Ab Initio, SL, HL), French as a Foreign Language (FLE), CNED French Curriculum",
   bio: "I am a French educator with over 13 years of experience teaching the IB curriculum, both as a teacher and as a parent of two daughters who successfully graduated from the IB program. I hold a diploma and certificates in FLE (Français Langue Étrangère – French as a Foreign Language), and I am passionate about supporting students in achieving fluency, confidence, and cultural understanding in French.\n\nThroughout my career, I have taught at the French Omani Center, ABA Muscat (as a substitute teacher for Grades 6–12 and as an IB French Ab Initio teacher for Grades 11 and 12), Riffa Views International School (IB Higher Level), and have also supported students enrolled in the CNED French curriculum. In addition, I have extensive experience as a private tutor, complementing school instruction with personalized, targeted support.\n\nAs a native French speaker, I provide authentic language instruction with a true French accent and a deep understanding of French culture from within. I teach both online and in person (based in Cyprus) and strive to remain flexible, adapting to each student’s schedule and learning needs.\n\nMy goal is to help students not only succeed academically but also develop a genuine appreciation for the French language and culture.",
   education: "Diploma and Certificates in FLE (Français Langue Étrangère)",
@@ -86,9 +86,21 @@ async function main() {
     const ahsanId = tutorIdByEmail.get("ahsankalam04@gmail.com");
     const emaanId = tutorIdByEmail.get("ekalam569@gmail.com");
     const ambreenId = tutorIdByEmail.get("Amber_kashif@yahoo.com");
-    //const margotId = tutorIdByEmail.get("");
+    const margotId = tutorIdByEmail.get("margot.e@wanadoo.fr");
 
     const reviewsToCreate = [];
+
+    if (margotId) {
+      reviewsToCreate.push(
+        {
+          rating: 5,
+          comment: "Margot did a great job of keeping our son engaged and interested while following the CNED (National Centre for Distance Education) program over several years while he was studying at the International School in Oman. It was important for us to have a native french speaker and Margot made extra efforts to make the weekly lessons pertinent by bringing in historical and cultural facts and stories to help integrate the material. We highly recommend her for tutoring in French.",
+          student: "Therese and Gilles Desorbay",
+          tutorId: margotId,
+          createdAt: new Date("2026-1-18"),
+        }
+      );
+    }
 
     if (ahsanId) {
       reviewsToCreate.push(
