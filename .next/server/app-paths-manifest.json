@@ -1,19 +1,19 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/about/page": "app/about/page.js",
-  "/api/tutors/route": "app/api/tutors/route.js",
+  "/api/bookings/route": "app/api/bookings/route.js",
   "/apply/page": "app/apply/page.js",
   "/book/page": "app/book/page.js",
-  "/faq/page": "app/faq/page.js",
   "/contact/page": "app/contact/page.js",
-  "/pricing/page": "app/pricing/page.js",
+  "/faq/page": "app/faq/page.js",
   "/page": "app/page.js",
-  "/api/bookings/route": "app/api/bookings/route.js",
   "/privacy/page": "app/privacy/page.js",
-  "/services/page": "app/services/page.js",
   "/terms/page": "app/terms/page.js",
+  "/api/tutors/route": "app/api/tutors/route.js",
+  "/about/page": "app/about/page.js",
+  "/services/page": "app/services/page.js",
+  "/pricing/page": "app/pricing/page.js",
   "/tutors/[id]/page": "app/tutors/[id]/page.js",
+  "/api/bookings/respond/route": "app/api/bookings/respond/route.js",
   "/tutors/page": "app/tutors/page.js",
-  "/api/tutor-application/route": "app/api/tutor-application/route.js",
-  "/api/bookings/respond/route": "app/api/bookings/respond/route.js"
+  "/api/tutor-application/route": "app/api/tutor-application/route.js"
 }
