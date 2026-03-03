@@ -8,7 +8,6 @@ export default function HomePage() {
       <div className="pointer-events-none absolute -top-44 left-1/2 h-[620px] w-[620px] -translate-x-1/2 rounded-full bg-indigo-500/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-56 right-[-180px] h-[620px] w-[620px] rounded-full bg-purple-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-56 left-[-180px] h-[520px] w-[520px] rounded-full bg-sky-500/10 blur-3xl" />
-<     h1>K-Cubed Tutoring</h1>
       {/* HERO */}
       <div className="border-b border-white/10 bg-black/20">
         <Container>
