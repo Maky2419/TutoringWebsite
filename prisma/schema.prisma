@@ -8,6 +8,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  STUDENT
+  TUTOR
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  tutor          Tutor?
+  studentBookings Booking[]                @relation("StudentBookings")
+  assignedTutors  StudentTutorAssignment[] @relation("StudentAssignments")
+}
+
 model Tutor {
   id         Int     @id @default(autoincrement())
   name       String
@@ -18,9 +42,12 @@ model Tutor {
   bio        String  @db.Text
   education  String? @db.Text
   hourlyRate Int
+  userId     String? @unique
 
-  reviews  Review[]
-  bookings Booking[]
+  user             User?                    @relation(fields: [userId], references: [id])
+  reviews          Review[]
+  bookings         Booking[]
+  assignedStudents StudentTutorAssignment[]
 }
 
 model Review {
@@ -30,7 +57,8 @@ model Review {
   student   String
   createdAt DateTime @default(now())
   tutorId   Int
-  tutor     Tutor    @relation(fields: [tutorId], references: [id])
+
+  tutor Tutor @relation(fields: [tutorId], references: [id])
 
   @@index([tutorId], map: "Review_tutorId_fkey")
 }
@@ -47,8 +75,62 @@ model Booking {
   status         String   @default("pending")
   acceptToken    String   @unique
   declineToken   String   @unique
-  tutorId        Int
-  tutor          Tutor    @relation(fields: [tutorId], references: [id])
+
+  tutorId       Int
+  studentUserId String?
+
+  tutor       Tutor @relation(fields: [tutorId], references: [id])
+  studentUser User? @relation("StudentBookings", fields: [studentUserId], references: [id])
 
   @@index([tutorId], map: "Booking_tutorId_fkey")
+  @@index([studentUserId])
+}
+
+model StudentTutorAssignment {
+  id        Int      @id @default(autoincrement())
+  tutorId   Int
+  studentId String
+  createdAt DateTime @default(now())
+
+  tutor   Tutor @relation(fields: [tutorId], references: [id])
+  student User  @relation("StudentAssignments", fields: [studentId], references: [id])
+
+  @@unique([tutorId, studentId])
+  @@index([studentId])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
 }

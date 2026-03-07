@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
   description:
     "K-Cubed Tutoring provides personalized academic support for high school and university students worldwide.",
-     icons: {
+  icons: {
     icon: "/favicon.png",
   },
   keywords: [
@@ -26,34 +26,6 @@ export const metadata: Metadata = {
     "Canada tutoring",
   ],
   metadataBase: new URL("https://kcubed.ca"),
-  alternates: {
-    canonical: "https://kcubed.ca/",
-  },
-  openGraph: {
-    title: "K-Cubed Tutoring",
-    description:
-      "K-Cubed Tutoring provides personalized academic support for high school and university students worldwide.",
-    url: "https://kcubed.ca/",
-    siteName: "K-Cubed Tutoring",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "K-Cubed Tutoring",
-    description:
-      "K-Cubed Tutoring provides personalized academic support for high school and university students worldwide.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
 };
 
 export default function RootLayout({
@@ -67,24 +39,6 @@ export default function RootLayout({
         <NavBar />
         <main className="min-h-[70vh]">{children}</main>
         <Footer />
-
-        {/* Structured Data for Brand SEO */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "EducationalOrganization",
-              name: "K-Cubed Tutoring",
-              alternateName: [
-                "K Cubed Tutoring",
-                "Kcubed Tutoring",
-                "KcubedTutoring"
-              ],
-              url: "https://kcubed.ca",
-            }),
-          }}
-        />
       </body>
     </html>
   );

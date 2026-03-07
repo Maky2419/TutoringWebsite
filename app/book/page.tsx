@@ -50,7 +50,6 @@ export default function BookPage() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // ✅ Always the form element in an onSubmit handler
     const formEl = e.currentTarget;
 
     setStatus("submitting");
@@ -60,32 +59,26 @@ export default function BookPage() {
 
     const payload = {
       tutorId: selectedTutorId ? Number(selectedTutorId) : undefined,
-      studentName: String(form.get("studentName") || "").trim(),
-      studentEmail: String(form.get("studentEmail") || "").trim(),
       subject: String(form.get("subject") || "").trim(),
       preferredTimes: String(form.get("preferredTimes") || "").trim(),
-      message: String(form.get("message") || "").trim() || undefined
+      message: String(form.get("message") || "").trim() || undefined,
     };
 
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        // Try to show a more readable message
-        const txt = await res.text();
-        throw new Error(txt || "Request failed");
+        throw new Error(data?.error || "Request failed");
       }
 
       setStatus("success");
-
-      // Reset native form fields
       formEl.reset();
-
-      // Reset controlled field (tutor dropdown)
       setSelectedTutorId("");
     } catch (err: any) {
       setStatus("error");
@@ -100,7 +93,7 @@ export default function BookPage() {
 
       <PageHeader
         title="Request a Tutoring Session"
-        subtitle="Pick a tutor, submit a request — you’ll get emailed when they accept."
+        subtitle="Pick a tutor, submit your request, and track it from your dashboard."
       />
 
       <Container>
@@ -140,33 +133,6 @@ export default function BookPage() {
                 )}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Your name <span className="text-rose-300">*</span>
-                  </label>
-                  <input
-                    name="studentName"
-                    required
-                    className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
-                    placeholder="Your full name"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Your email <span className="text-rose-300">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="studentEmail"
-                    required
-                    className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
-                    placeholder="you@email.com"
-                  />
-                </div>
-              </div>
-
               <div className="mt-4">
                 <label className="mb-2 block text-sm font-medium text-white/80">
                   Subject / Topic <span className="text-rose-300">*</span>
@@ -203,7 +169,7 @@ export default function BookPage() {
 
               {status === "success" && (
                 <div className="mt-5 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-emerald-100">
-                  Request sent! We emailed the tutor — you’ll get an email when they accept or decline.
+                  Request sent! You can now see it from your student dashboard too.
                 </div>
               )}
 
@@ -226,10 +192,10 @@ export default function BookPage() {
           <aside className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
             <h3 className="text-lg font-semibold text-white">How it works</h3>
             <ul className="mt-4 space-y-3 text-sm text-white/70">
-              <li>1) Pick a tutor</li>
-              <li>2) Submit your request</li>
-              <li>3) Tutor accepts/declines via email link</li>
-              <li>4) You get emailed the decision</li>
+              <li>1) Log in</li>
+              <li>2) Pick a tutor</li>
+              <li>3) Submit your request</li>
+              <li>4) Track it from your dashboard</li>
             </ul>
           </aside>
         </div>

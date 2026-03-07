@@ -1,34 +1,65 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../lib/auth";
+import SignOutButton from "./SignOutButton";
 
-export default function NavBar() {
+export default async function NavBar() {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+
   return (
-    <nav className="sticky top-0 z-50 bg-black/40 backdrop-blur-lg border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-lg">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-2xl font-bold tracking-wide">
           K-<span className="text-indigo-400">Cubed Tutoring</span>
         </Link>
-        {/* <Link
-  href="/"
-  className="flex items-center gap-2 text-2xl font-bold tracking-wide"
->
-  <img
-    src="https://drive.google.com/thumbnail?id=1pqTOD5NRiiA64rnyQWSDPqUecQOS7TI6&sz=w1000"
-    alt="K-Cubed logo"
-    className="h-8 w-8 object-contain"
-  />
 
-  <span>
-    K-<span className="text-indigo-400">Cubed</span>
-  </span>
-</Link> */}
+        <div className="flex items-center gap-6 text-sm">
+          <Link href="/tutors" className="hover:text-indigo-400">
+            Tutors
+          </Link>
+          <Link href="/apply" className="hover:text-indigo-400">
+            Become a tutor
+          </Link>
+          <Link href="/pricing" className="hover:text-indigo-400">
+            Pricing
+          </Link>
+          <Link href="/services" className="hover:text-indigo-400">
+            Services
+          </Link>
 
-        <div className="flex gap-6 items-center text-sm">
-          <Link href="/tutors" className="hover:text-indigo-400">Tutors</Link>
-          <Link href="/apply"className="hover:text-indigo-400" >Become a tutor</Link>
-          <Link href="/pricing" className="hover:text-indigo-400">Pricing</Link>
-          <Link href="/services" className="hover:text-indigo-400">Services</Link>
-          <Link href="/book" className="btn-primary">Book Now</Link>
-          
+          {session ? (
+            <>
+              <Link href="/book" className="hover:text-indigo-400">
+                Book Now
+              </Link>
+
+              <Link href="/dashboard" className="hover:text-indigo-400">
+                {role === "ADMIN"
+                  ? "Admin Dashboard"
+                  : role === "TUTOR"
+                  ? "Tutor Dashboard"
+                  : "Student Dashboard"}
+              </Link>
+
+              <SignOutButton />
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="hover:text-indigo-400">
+                Login
+              </Link>
+              <Link href="/signup" className="hover:text-indigo-400">
+                Sign Up
+              </Link>
+              <Link
+                href="/book"
+                className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white hover:bg-white/10"
+              >
+                Book Now
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

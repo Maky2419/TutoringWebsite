@@ -1,28 +1,33 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
 import { sendEmail } from "../../../lib/mailer";
 import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
+const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "You must be logged in to book" }, { status: 401 });
+    }
+
     const body = await req.json();
 
     const tutorId = Number(body.tutorId);
-    const studentName = String(body.studentName || "").trim();
-    const studentEmail = String(body.studentEmail || "").trim();
     const subject = String(body.subject || "").trim();
     const preferredTimes = String(body.preferredTimes || "").trim();
     const message = body.message ? String(body.message).trim() : "";
-    
+
+    const studentUserId = (session.user as any).id;
+    const studentName = String(session.user.name || "Student").trim();
+    const studentEmail = String(session.user.email || "").trim();
 
     if (!tutorId || Number.isNaN(tutorId)) {
       return NextResponse.json({ error: "tutorId is required" }, { status: 400 });
     }
-    if (!studentName) {
-      return NextResponse.json({ error: "studentName is required" }, { status: 400 });
-    }
     if (!studentEmail) {
-      return NextResponse.json({ error: "studentEmail is required" }, { status: 400 });
+      return NextResponse.json({ error: "Student email is missing from account" }, { status: 400 });
     }
     if (!subject) {
       return NextResponse.json({ error: "subject is required" }, { status: 400 });
@@ -42,14 +47,15 @@ export async function POST(req: Request) {
     const booking = await prisma.booking.create({
       data: {
         tutorId,
+        studentUserId,
         studentName,
         studentEmail,
         subject,
         preferredTimes,
         message: message || null,
         acceptToken,
-        declineToken
-      }
+        declineToken,
+      },
     });
 
     let emailSent = false;
@@ -58,7 +64,6 @@ export async function POST(req: Request) {
     try {
       const baseUrl = process.env.APP_BASE_URL || "https://kcubed.ca";
 
-      // ✅ Your respond route path:
       const acceptUrl = `${baseUrl}/api/bookings/respond?action=accept&id=${booking.id}&token=${acceptToken}`;
       const declineUrl = `${baseUrl}/api/bookings/respond?action=decline&id=${booking.id}&token=${declineToken}`;
 
@@ -74,14 +79,9 @@ export async function POST(req: Request) {
             <a href="${acceptUrl}" style="background:#16a34a;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;margin-right:10px;">Accept</a>
             <a href="${declineUrl}" style="background:#dc2626;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;">Decline</a>
           </div>
-
-          <p style="margin-top:12px;color:#666;font-size:12px">
-            If you didn’t expect this email, you can ignore it.
-          </p>
         </div>
       `;
 
-      // ✅ REQUIRED: include text
       const text = [
         "New tutoring request",
         `Student: ${studentName} (${studentEmail})`,
@@ -90,57 +90,47 @@ export async function POST(req: Request) {
         message ? `Message: ${message}` : "",
         "",
         `Accept: ${acceptUrl}`,
-        `Decline: ${declineUrl}`
+        `Decline: ${declineUrl}`,
       ]
         .filter(Boolean)
         .join("\n");
 
-const adminEmail = process.env.ADMIN_EMAIL;
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const tutorAndAdmin = adminEmail ? [tutor.email, adminEmail] : [tutor.email];
 
-const tutorAndAdmin = adminEmail ? [tutor.email, adminEmail] : [tutor.email];
+      await sendEmail({
+        to: tutorAndAdmin,
+        subject: `New tutoring request: ${subject}`,
+        text,
+        html,
+        replyTo: studentEmail,
+      });
 
-// 1) Tutor + Admin: request with decision links
-await sendEmail({
-  to: tutorAndAdmin,
-  subject: `New tutoring request: ${subject}`,
-  text,
-  html,
-  replyTo: studentEmail
-});
-
-// 2) Student: thank-you / received confirmation
-await sendEmail({
-  to: studentEmail,
-  subject: "Your K-Cubed tutoring request has been received",
-  text: `Dear ${studentName},
+      await sendEmail({
+        to: studentEmail,
+        subject: "Your K-Cubed tutoring request has been received",
+        text: `Dear ${studentName},
 
 Thank you for reaching out to K-Cubed Tutoring! We received your tutoring request and sent it to the tutor you selected.
 
 Next step: the tutor will review it and you’ll receive an email once they accept or decline.
 
-If you have any questions, reply to this email.
-
 Warm regards,
 K-Cubed Tutoring Team`,
-  html: `
-    <div style="font-family:Arial,sans-serif;line-height:1.6">
-      <p>Dear ${studentName},</p>
-      <p>Thank you for reaching out to <strong>K-Cubed Tutoring</strong>! We received your tutoring request and sent it to the tutor you selected.</p>
-      <p><strong>Next step:</strong> the tutor will review it and you’ll receive an email once they accept or decline.</p>
-      <p>If you have any questions, simply reply to this email.</p>
-      <p>Warm regards,<br/>K-Cubed Tutoring Team</p>
-    </div>
-  `
-});
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6">
+            <p>Dear ${studentName},</p>
+            <p>Thank you for reaching out to <strong>K-Cubed Tutoring</strong>! We received your tutoring request and sent it to the tutor you selected.</p>
+            <p><strong>Next step:</strong> the tutor will review it and you’ll receive an email once they accept or decline.</p>
+            <p>Warm regards,<br/>K-Cubed Tutoring Team</p>
+          </div>
+        `,
+      });
 
-
-
-
-      console.log("✅ Email sent to tutor:", tutor.email);
       emailSent = true;
     } catch (e: any) {
       emailError = e?.message || "Email failed";
-      console.error("❌ Email send failed:", e);
+      console.error("Email send failed:", e);
     }
 
     return NextResponse.json(
@@ -148,12 +138,12 @@ K-Cubed Tutoring Team`,
         ok: true,
         booking,
         emailSent,
-        emailError
+        emailError,
       },
       { status: 201 }
     );
   } catch (e: any) {
-    console.error("❌ Booking POST failed:", e);
+    console.error("Booking POST failed:", e);
     return NextResponse.json({ error: e?.message || "Internal server error" }, { status: 500 });
   }
 }
