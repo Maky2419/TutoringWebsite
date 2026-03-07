@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const tutors = await prisma.tutor.findMany({
-    include: { reviews: true }
+    orderBy: { id: "asc" },
   });
-  return Response.json(tutors);
+
+  return NextResponse.json(tutors);
 }

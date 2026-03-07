@@ -4,48 +4,58 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
-  const tutors = [
-    {
-      name: "Muhammad Ahsan",
-      email: "ahsankalam04@gmail.com",
-      subjects: "AP Maths, IB DP Mathematic AA&AI, Computer Scicence, Java, Python,",
-      bio: "Fourth-year undergraduate student nearing graduation in Computer Science and Mathematics, having completed mathematics at the fourth-year university level. I have over eight years of teaching experience, working with students from middle school and high school through to second-year university, as well as in professional and academic settings. I teach both mathematics and computer science and have experience teaching independently and under the guidance of experienced teachers and university professors. My teaching style is student-focused, supportive, and approachable, with an emphasis on helping students truly understand concepts rather than rely on memorization. I provide exam preparation support, including custom practice questions and exam-style papers, and ensure that students have a strong grasp of each topic before moving forward, addressing any concerns or gaps in understanding well before exams so they feel confident and prepared.",
-      education: "BSc Computer Science and Mathematics – University of British Columbia",
-      hourlyRate: 55
-    },
-    {
-      name: "Emaan Kalam",
-      email: "ekalam569@gmail.com",
-      subjects: "MYP Science, IB Economics SL&HL, IB Business Management SL&HL, GSCE Economics, GSCE Business Studies, A Levels Economics, A Levels Business",
-      bio: "I am a second-year student currently enrolled in the University of Toronto who genuinely loves learning and sharing that curiosity with others. My teaching style is interactive, using dynamic presentations, exercises, hands on activities and games to make learning engaging, accessible and fun. With strong leadership and mentoring skills as well as a multicultural perspective, I enjoy connecting with students from diverse backgrounds and helping them grow with confidence.",
-      education: "BCOM in Accounting and Economics - The University of Toronto",
-      hourlyRate: 55
-    },
-    {
-      name: "Ambreen Naseem",
-      email: "Amber_kashif@yahoo.com",
-      subjects: "Mathematics MYP, Mathematics PYP",
-      bio: "I am an experienced private tutor with over 15 years of working with elementary and middle school students across IB, British, and American curricula. I specialize in one-to-one mathematics tutoring, helping students build strong foundations, confidence, and a genuine understanding of concepts rather than rote learning.\n\nMy tutoring approach is highly personalized—each lesson is carefully tailored to the student’s learning style, academic goals, and pace. I have extensive experience supporting students with learning differences, including dyslexia, and I use engaging, multi-sensory strategies to make learning meaningful and accessible.\n\nAlongside my tutoring practice, I have worked in international schools as a substitute teacher, teaching assistant, and homeroom teacher. This classroom experience strengthens my tutoring by allowing me to align lessons with school expectations while addressing individual gaps.\n\nMy goal is not only to improve grades, but to help students become independent, confident learners who feel capable and motivated in mathematics.",
-      education: "Masters in Education - Buffalo state University, USA | Masters in Business Administration - Institute of Business Administration, Pakistan",
-      hourlyRate: 55
-    },
-    {
-  name: "Margot Espinasse",
-  email: "margot.e@wanadoo.fr",
-  subjects: "IB French (Ab Initio, SL, HL), French as a Foreign Language (FLE), CNED French Curriculum",
-  bio: "I am a French educator with over 13 years of experience teaching the IB curriculum, both as a teacher and as a parent of two daughters who successfully graduated from the IB program. I hold a diploma and certificates in FLE (Français Langue Étrangère – French as a Foreign Language), and I am passionate about supporting students in achieving fluency, confidence, and cultural understanding in French.\n\nThroughout my career, I have taught at the French Omani Center, ABA Muscat (as a substitute teacher for Grades 6–12 and as an IB French Ab Initio teacher for Grades 11 and 12), Riffa Views International School (IB Higher Level), and have also supported students enrolled in the CNED French curriculum. In addition, I have extensive experience as a private tutor, complementing school instruction with personalized, targeted support.\n\nAs a native French speaker, I provide authentic language instruction with a true French accent and a deep understanding of French culture from within. I teach both online and in person (based in Cyprus) and strive to remain flexible, adapting to each student’s schedule and learning needs.\n\nMy goal is to help students not only succeed academically but also develop a genuine appreciation for the French language and culture.",
-  education: "Diploma and Certificates in FLE (Français Langue Étrangère)",
-  hourlyRate: 60
-}, 
-    {
-  name: "Kashif Qureshi",
-  email: "Kashif.Kalam@pwc.com",
-  subjects: "Accounting, Finance, Audit, Risk Management, Investments",
-  bio: "With over 35 years of experience across the GCC and South Asia, Kashif brings deep expertise in accounting, assurance, financial services, and risk management into his teaching. His approach is thorough and concept-driven, with a strong emphasis on breaking down complex topics step by step and reinforcing them through real-world examples drawn from his extensive professional experience. He teaches in a detailed and rigorous manner, ensuring students not only understand the “how,” but also the “why” behind financial concepts.\n\n Kashif regularly uses practical case scenarios, market examples, and regulatory situations to make abstract ideas concrete and relatable. His teaching style is structured, example-heavy, and discussion-oriented, helping students build strong foundational understanding, confidence, and the ability to apply concepts in real academic or professional settings.",
-  education: "Chartered Accountant – Fellow member of the Institute of Chartered Accountants",
-  hourlyRate: 55
-}
-  ];
+ const tutors = [
+  {
+    name: "Muhammad Ahsan",
+    email: "ahsankalam04@gmail.com",
+    category: "STEM",
+    subjects: ["Mathematics", "Computer Science", "Java", "Python", "Data Science"],
+    curriculum: ["IB", "AP", "University"],
+  bio: "Fourth-year undergraduate student nearing graduation in Computer Science and Mathematics at the University of British Columbia. I have over eight years of teaching experience working with students from middle school through second-year university. I teach mathematics and computer science with a focus on deep conceptual understanding rather than memorization. My lessons include exam preparation, custom practice questions, and structured problem solving so students feel confident and fully prepared before exams.",
+    education: "BSc Computer Science and Mathematics – University of British Columbia",
+    hourlyRate: 55,
+  },
+  {
+    name: "Emaan Kalam",
+    email: "ekalam569@gmail.com",
+    category: "Business & Economics",
+    subjects: ["Economics", "Business Management", "Business Studies"],
+    curriculum: ["IB", "GCSE", "A-Level"],
+  bio: "Second-year student at the University of Toronto studying Accounting and Economics. My teaching style is interactive and engaging, using presentations, exercises, and hands-on activities to help students truly understand material. I enjoy connecting with students from diverse backgrounds and helping them grow academically with confidence.",
+    education: "BCom in Accounting and Economics – University of Toronto",
+    hourlyRate: 55,
+  },
+  {
+    name: "Ambreen Naseem",
+    email: "Amber_kashif@yahoo.com",
+    category: "STEM",
+    subjects: ["Mathematics"],
+    curriculum: ["IB", "PYP", "MYP", "British", "American"],
+  bio: "I am an experienced private tutor with over 15 years of teaching elementary and middle school students across IB, British, and American curricula. My tutoring approach is highly personalized and adapted to each student's learning style. I have extensive experience supporting students with learning differences such as dyslexia and use multi-sensory techniques to make mathematics meaningful and accessible.",
+    education: "Masters in Education – Buffalo State University, USA",
+    hourlyRate: 55,
+  },
+  {
+    name: "Margot Espinasse",
+    email: "margot.e@wanadoo.fr",
+    category: "Languages",
+    subjects: ["French", "French as a Foreign Language"],
+    curriculum: ["IB", "CNED"],
+  bio: "French educator with over 13 years of experience teaching IB French. I specialize in helping students develop fluency, confidence, and cultural understanding in French. As a native speaker, I provide authentic language instruction along with strong exam preparation for IB students.",
+    education: "Diploma and Certificates in FLE",
+    hourlyRate: 60,
+  },
+  {
+    name: "Kashif Qureshi",
+    email: "Kashif.Kalam@pwc.com",
+    category: "Business & Economics",
+    subjects: ["Accounting", "Finance", "Audit", "Risk Management", "Investments"],
+    curriculum: ["University", "Professional"],
+  bio: "With over 35 years of professional experience across the GCC and South Asia, Kashif brings deep expertise in accounting, finance, and risk management. His teaching approach focuses on real-world examples and case studies to help students understand financial concepts and apply them effectively in academic and professional settings.",
+    education: "Chartered Accountant – Fellow member of the Institute of Chartered Accountants",
+    hourlyRate: 55,
+  },
+];
 
   // Upsert tutors
   for (const t of tutors) {

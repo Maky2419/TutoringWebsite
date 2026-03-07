@@ -26,53 +26,80 @@ export default async function TutorPage({ params }: { params: { id: string } }) 
       ? 0
       : tutor.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount;
 
+  const subjects = Array.isArray(tutor.subjects) ? tutor.subjects.join(", ") : "";
+  const curriculum = Array.isArray(tutor.curriculum) ? tutor.curriculum.join(", ") : "";
+
   return (
     <div>
       <PageHeader
         title={tutor.name}
-        subtitle={[
-          tutor.subjects,
-          tutor.education ? `• ${tutor.education}` : null
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        subtitle={[tutor.category, subjects].filter(Boolean).join(" • ")}
       />
 
       <Container>
-        <div className="py-10 space-y-8">
-
+        <div className="space-y-8 py-10">
           {/* Profile Card */}
           <div className="rounded-2xl border border-white/20 bg-white/5 p-6 shadow-xl backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-6">
-
-              <div>
-                <p className="text-sm text-white/70">Hourly rate</p>
-                <p className="text-2xl font-bold text-white">${tutor.hourlyRate}/hr</p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-sm text-white/70">Rating</p>
-                <p className="text-2xl font-bold text-white">
-                  {reviewCount === 0 ? "New" : avgRating.toFixed(1)}
-                  <span className="text-sm text-white/70"> / 5</span>
-                </p>
-                {reviewCount > 0 && (
-                  <p className="text-sm text-white/80">
-                    {stars(Math.round(avgRating))} • {reviewCount} reviews
+            <div className="flex flex-wrap items-start justify-between gap-6">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-white/70">Category</p>
+                  <p className="text-lg font-semibold text-white">
+                    {tutor.category || "—"}
                   </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-white/70">Subjects</p>
+                  <p className="text-lg font-semibold text-white">
+                    {subjects || "—"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-white/70">Curriculum</p>
+                  <p className="text-lg font-semibold text-white">
+                    {curriculum || "—"}
+                  </p>
+                </div>
+
+                {tutor.education && (
+                  <div>
+                    <p className="text-sm text-white/70">Education</p>
+                    <p className="text-lg font-semibold text-white">
+                      {tutor.education}
+                    </p>
+                  </div>
                 )}
               </div>
 
+              <div className="space-y-4 text-left md:text-right">
+                <div>
+                  <p className="text-sm text-white/70">Hourly rate</p>
+                  <p className="text-2xl font-bold text-white">
+                    ${tutor.hourlyRate}/hr
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-white/70">Rating</p>
+                  <p className="text-2xl font-bold text-white">
+                    {reviewCount === 0 ? "New" : avgRating.toFixed(1)}
+                    <span className="text-sm text-white/70"> / 5</span>
+                  </p>
+                  {reviewCount > 0 && (
+                    <p className="text-sm text-white/80">
+                      {stars(Math.round(avgRating))} • {reviewCount} reviews
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            {tutor.education && (
-              <div className="mt-4">
-                <p className="text-sm text-white/70">Education</p>
-                <p className="text-lg font-semibold text-white">{tutor.education}</p>
-              </div>
-            )}
-
-            <p className="mt-4 text-white/90">{tutor.bio}</p>
+            <div className="mt-6">
+              <p className="text-sm text-white/70">About</p>
+              <p className="mt-2 text-white/90">{tutor.bio}</p>
+            </div>
 
             <div className="mt-6">
               <Link
@@ -102,7 +129,10 @@ export default async function TutorPage({ params }: { params: { id: string } }) 
                   >
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">
-                        {r.student} <span className="text-yellow-500 ml-1">{stars(r.rating)}</span>
+                        {r.student}{" "}
+                        <span className="ml-1 text-yellow-500">
+                          {stars(r.rating)}
+                        </span>
                       </p>
                       <p className="text-sm text-gray-500">
                         {new Date(r.createdAt).toLocaleDateString()}
@@ -114,7 +144,6 @@ export default async function TutorPage({ params }: { params: { id: string } }) 
               </div>
             )}
           </div>
-
         </div>
       </Container>
     </div>
