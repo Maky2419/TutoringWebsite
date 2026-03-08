@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
+import StudentScheduleView from "../../../components/StudentScheduleView";
 
 export default async function StudentDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -29,7 +30,7 @@ export default async function StudentDashboardPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-6 py-12">
       <h1 className="text-4xl font-bold text-white">Student Dashboard</h1>
       <p className="mt-2 text-white/60">
         Welcome back, {session.user.name || "Student"}.
@@ -51,6 +52,9 @@ export default async function StudentDashboardPage() {
                   <p className="text-sm text-white/60">{item.tutor.email}</p>
                   <p className="mt-1 text-sm text-white/70">
                     Rate: ${item.tutor.hourlyRate}/hr
+                  </p>
+                  <p className="mt-1 text-sm text-emerald-300">
+                    Total so far: ${Number(item.accumulatedTotal).toFixed(2)}
                   </p>
                 </div>
               ))
@@ -82,6 +86,19 @@ export default async function StudentDashboardPage() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h2 className="text-xl font-semibold text-white">Lesson Schedule</h2>
+          <p className="mt-2 text-sm text-white/60">
+            This view is read-only for students.
+          </p>
+
+          <div className="mt-6">
+            <StudentScheduleView />
           </div>
         </div>
       </div>

@@ -1,12 +1,13 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
   "/api/tutors/route": "app/api/tutors/route.js",
-  "/api/tutor/students/route": "app/api/tutor/students/route.js",
-  "/book/page": "app/book/page.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/page": "app/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/login/page": "app/login/page.js",
-  "/student/dashboard/page": "app/student/dashboard/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/student/dashboard/page": "app/student/dashboard/page.js",
+  "/api/student/sessions/route": "app/api/student/sessions/route.js",
+  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
+  "/book/page": "app/book/page.js",
+  "/api/tutor/sessions/route": "app/api/tutor/sessions/route.js",
+  "/api/tutor/students/route": "app/api/tutor/students/route.js"
 }
