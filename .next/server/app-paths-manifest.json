@@ -1,13 +1,4 @@
 {
-  "/api/tutors/route": "app/api/tutors/route.js",
   "/page": "app/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/login/page": "app/login/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/student/dashboard/page": "app/student/dashboard/page.js",
-  "/api/student/sessions/route": "app/api/student/sessions/route.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/book/page": "app/book/page.js",
-  "/api/tutor/sessions/route": "app/api/tutor/sessions/route.js",
-  "/api/tutor/students/route": "app/api/tutor/students/route.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
 }
