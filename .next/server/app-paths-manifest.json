@@ -1,4 +1,9 @@
 {
+  "/login/page": "app/login/page.js",
+  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
+  "/tutors/page": "app/tutors/page.js",
+  "/book/page": "app/book/page.js",
+  "/api/tutors/route": "app/api/tutors/route.js",
   "/page": "app/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js"
+  "/tutors/[id]/page": "app/tutors/[id]/page.js"
 }
