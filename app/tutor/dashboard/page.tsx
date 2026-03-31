@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
 import { prisma } from "../../../lib/prisma";
-import TutorScheduleManager from "../../../components/TutorScheduleManager";
+import TutorDashboardClient from "../../../components/TutorDashboardClient";
 
 export default async function TutorDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -14,6 +14,20 @@ export default async function TutorDashboardPage() {
 
   const tutor = await prisma.tutor.findFirst({
     where: { userId },
+    include: {
+      assignedStudents: {
+        include: {
+          student: true,
+          sessions: {
+            orderBy: { lessonDate: "asc" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+      bookings: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
   });
 
   if (!tutor) {
@@ -26,16 +40,64 @@ export default async function TutorDashboardPage() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <h1 className="text-4xl font-bold text-white">Tutor Dashboard</h1>
-      <p className="mt-2 text-white/60">
-        Welcome back, {session.user.name || tutor.name}.
-      </p>
+  const now = new Date();
 
-      <div className="mt-10">
-        <TutorScheduleManager />
-      </div>
-    </div>
+  const allSessions = tutor.assignedStudents.flatMap((assignment) =>
+    assignment.sessions.map((session) => ({
+      ...session,
+      studentName: assignment.student.name,
+      studentEmail: assignment.student.email,
+    }))
+  );
+
+  const sortedUpcomingSessions = allSessions
+    .filter((session) => new Date(session.lessonDate) >= now)
+    .sort(
+      (a, b) =>
+        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
+    );
+
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  const todaysSessions = allSessions.filter(
+    (session) => new Date(session.lessonDate).toISOString().split("T")[0] === todayStr
+  ).length;
+
+  const totalEarnings = tutor.assignedStudents.reduce(
+    (sum, assignment) => sum + Number(assignment.accumulatedTotal),
+    0
+  );
+
+  const totalStudents = tutor.assignedStudents.length;
+
+  const totalSessions = allSessions.length;
+
+  const pendingBookings = tutor.bookings.filter(
+    (booking) => booking.status.toLowerCase() === "pending"
+  ).length;
+
+  return (
+    <TutorDashboardClient
+      tutor={{
+        id: tutor.id,
+        name: tutor.name,
+        email: tutor.email,
+        hourlyRate: tutor.hourlyRate,
+        category: tutor.category,
+      }}
+      userName={session.user.name || tutor.name}
+      assignedStudents={tutor.assignedStudents}
+      bookings={tutor.bookings}
+      allSessions={allSessions}
+      upcomingSessions={sortedUpcomingSessions}
+      stats={{
+        todaysSessions,
+        totalEarnings,
+        totalStudents,
+        totalSessions,
+        pendingBookings,
+      }}
+    />
   );
 }
