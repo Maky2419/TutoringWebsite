@@ -1,6 +1,11 @@
 {
-  "/tutors/[id]/page": "app/tutors/[id]/page.js",
+  "/tutor/account/page": "app/tutor/account/page.js",
   "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/login/page": "app/login/page.js",
-  "/tutors/page": "app/tutors/page.js"
+  "/api/tutor/students/route": "app/api/tutor/students/route.js",
+  "/tutors/page": "app/tutors/page.js",
+  "/api/tutors/route": "app/api/tutors/route.js",
+  "/api/tutor/profile/route": "app/api/tutor/profile/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js"
 }

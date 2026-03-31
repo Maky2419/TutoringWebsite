@@ -168,6 +168,12 @@ export default function TutorDashboardClient({
                 your tutoring business in one place.
               </p>
             </div>
+            <a
+  href="/tutor/account"
+  className="mt-4 inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+>
+  Manage account
+</a>
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur">
               <p className="text-sm text-white/60">Tutor profile</p>
@@ -255,7 +261,9 @@ export default function TutorDashboardClient({
           <SectionCard
             title="Top students"
             subtitle="A clean business-style overview of your student relationships."
+            
           >
+            
             <div className="space-y-4">
               {topStudents.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
