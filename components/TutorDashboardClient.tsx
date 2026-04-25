@@ -1,6 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import TutorScheduleManager from "./TutorScheduleManager";
+import TutorCalendar from "./TutorCalendar";
 
 type Student = {
   id: string;
@@ -8,20 +10,22 @@ type Student = {
   email: string | null;
 };
 
+type SessionBase = {
+  id: number;
+  lessonDate: Date | string;
+  startTime: string;
+  endTime: string;
+  notes: string | null;
+  durationHours: string | number;
+  amount: string | number;
+};
+
 type AssignedStudent = {
   id: number;
   studentId: string;
   accumulatedTotal: string | number;
   student: Student;
-  sessions: {
-    id: number;
-    lessonDate: Date | string;
-    startTime: string;
-    endTime: string;
-    notes: string | null;
-    durationHours: string | number;
-    amount: string | number;
-  }[];
+  sessions: SessionBase[];
 };
 
 type Booking = {
@@ -42,14 +46,7 @@ type TutorInfo = {
   category: string;
 };
 
-type SessionRow = {
-  id: number;
-  lessonDate: Date | string;
-  startTime: string;
-  endTime: string;
-  notes: string | null;
-  durationHours: string | number;
-  amount: string | number;
+type SessionRow = SessionBase & {
   studentName: string | null;
   studentEmail: string | null;
 };
@@ -61,6 +58,7 @@ type Props = {
   bookings: Booking[];
   allSessions: SessionRow[];
   upcomingSessions: SessionRow[];
+  calendarSessions: SessionRow[];
   stats: {
     todaysSessions: number;
     totalEarnings: number;
@@ -122,7 +120,7 @@ function SectionCard({
 }: {
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/10">
@@ -142,14 +140,27 @@ export default function TutorDashboardClient({
   bookings,
   allSessions,
   upcomingSessions,
+  calendarSessions,
   stats,
 }: Props) {
   const recentBookings = bookings.slice(0, 5);
+
   const topStudents = [...assignedStudents]
-    .sort(
-      (a, b) => Number(b.accumulatedTotal) - Number(a.accumulatedTotal)
-    )
+    .sort((a, b) => Number(b.accumulatedTotal) - Number(a.accumulatedTotal))
     .slice(0, 5);
+
+  const normalizedCalendarSessions = calendarSessions.map((session) => ({
+    id: session.id,
+    lessonDate:
+      session.lessonDate instanceof Date
+        ? session.lessonDate.toISOString()
+        : session.lessonDate,
+    startTime: session.startTime,
+    endTime: session.endTime,
+    studentName: session.studentName,
+    studentEmail: session.studentEmail,
+    amount: Number(session.amount),
+  }));
 
   return (
     <div className="min-h-screen bg-[#07111f]">
@@ -167,17 +178,20 @@ export default function TutorDashboardClient({
                 Manage students, schedule sessions, review bookings, and track
                 your tutoring business in one place.
               </p>
+
+              <a
+                href="/tutor/account"
+                className="mt-5 inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                Manage account
+              </a>
             </div>
-            <a
-  href="/tutor/account"
-  className="mt-4 inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
->
-  Manage account
-</a>
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-5 backdrop-blur">
               <p className="text-sm text-white/60">Tutor profile</p>
-              <p className="mt-2 text-lg font-semibold text-white">{tutor.name}</p>
+              <p className="mt-2 text-lg font-semibold text-white">
+                {tutor.name}
+              </p>
               <p className="text-sm text-white/70">{tutor.email}</p>
               <p className="mt-2 text-sm text-emerald-300">
                 ${tutor.hourlyRate}/hr · {tutor.category}
@@ -239,8 +253,8 @@ export default function TutorDashboardClient({
                           {session.studentEmail || "No email"}
                         </p>
                         <p className="mt-2 text-sm text-white/70">
-                          {formatDate(session.lessonDate)} · {session.startTime} -{" "}
-                          {session.endTime}
+                          {formatDate(session.lessonDate)} ·{" "}
+                          {session.startTime} - {session.endTime}
                         </p>
                       </div>
 
@@ -250,7 +264,9 @@ export default function TutorDashboardClient({
                     </div>
 
                     {session.notes && (
-                      <p className="mt-3 text-sm text-white/55">{session.notes}</p>
+                      <p className="mt-3 text-sm text-white/55">
+                        {session.notes}
+                      </p>
                     )}
                   </div>
                 ))
@@ -261,9 +277,7 @@ export default function TutorDashboardClient({
           <SectionCard
             title="Top students"
             subtitle="A clean business-style overview of your student relationships."
-            
           >
-            
             <div className="space-y-4">
               {topStudents.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
@@ -300,13 +314,17 @@ export default function TutorDashboardClient({
           </SectionCard>
         </div>
 
-        <div className="mt-8 grid gap-8 xl:grid-cols-[1.35fr_1fr]">
+        <div className="mt-8">
           <SectionCard
-            title="Schedule manager"
-            subtitle="This is the core working area for tutors, now placed inside a more polished dashboard."
+            title="Tutor calendar"
+            subtitle="See all scheduled tutoring sessions in a monthly calendar view."
           >
-            <TutorScheduleManager />
+            <TutorCalendar sessions={normalizedCalendarSessions} />
           </SectionCard>
+        </div>
+
+        <div className="mt-8 grid gap-8 xl:grid-cols-[1.35fr_1fr]">
+         <TutorScheduleManager />
 
           <div className="space-y-8">
             <SectionCard
@@ -358,7 +376,9 @@ export default function TutorDashboardClient({
             >
               <div className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Average revenue per student</p>
+                  <p className="text-sm text-white/55">
+                    Average revenue per student
+                  </p>
                   <p className="mt-2 text-3xl font-bold text-white">
                     {assignedStudents.length > 0
                       ? formatMoney(stats.totalEarnings / assignedStudents.length)
@@ -367,7 +387,9 @@ export default function TutorDashboardClient({
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Average revenue per session</p>
+                  <p className="text-sm text-white/55">
+                    Average revenue per session
+                  </p>
                   <p className="mt-2 text-3xl font-bold text-white">
                     {allSessions.length > 0
                       ? formatMoney(stats.totalEarnings / allSessions.length)

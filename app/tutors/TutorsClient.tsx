@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import Container from "../../components/Container";
 import PageHeader from "../../components/PageHeader";
@@ -55,7 +54,7 @@ const SUBJECT_CATALOG = {
     "Philosophy",
     "Cultural Studies",
   ],
-};
+} as const;
 
 const CURRICULUM_OPTIONS = [
   "IB",
@@ -72,17 +71,32 @@ const CURRICULUM_OPTIONS = [
   "American",
   "CNED",
   "General",
-];
+] as const;
+
+type SubjectCategory = keyof typeof SUBJECT_CATALOG;
+
+type Tutor = {
+  id: number | string;
+  name?: string | null;
+  email?: string | null;
+  category?: string | null;
+  subjects?: string[] | null;
+  curriculum?: string[] | null;
+  bio?: string | null;
+  hourlyRate?: number | string | null;
+};
 
 export default function TutorsClient() {
-  const [tutors, setTutors] = useState([]);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const selectedCategory = (searchParams.get("category") ?? "").trim();
+  const selectedCategory = (searchParams.get("category") ?? "").trim() as
+    | SubjectCategory
+    | "";
   const selectedCourse = (searchParams.get("course") ?? "").trim();
   const selectedCurriculum = (searchParams.get("curriculum") ?? "").trim();
   const query = (searchParams.get("q") ?? "").trim();
@@ -93,15 +107,26 @@ export default function TutorsClient() {
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch("/api/tutors", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to load tutors");
 
-        const data = await res.json();
-        if (!cancelled) setTutors(Array.isArray(data) ? data : []);
+        const res = await fetch("/api/tutors", { cache: "no-store" });
+
+        if (!res.ok) {
+          throw new Error("Failed to load tutors");
+        }
+
+        const data: unknown = await res.json();
+
+        if (!cancelled) {
+          setTutors(Array.isArray(data) ? (data as Tutor[]) : []);
+        }
       } catch {
-        if (!cancelled) setTutors([]);
+        if (!cancelled) {
+          setTutors([]);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -113,11 +138,11 @@ export default function TutorsClient() {
   }, []);
 
   const availableCourses = useMemo(() => {
-    if (!selectedCategory || !SUBJECT_CATALOG[selectedCategory]) return [];
-    return SUBJECT_CATALOG[selectedCategory];
+    if (!selectedCategory) return [];
+    return [...SUBJECT_CATALOG[selectedCategory]];
   }, [selectedCategory]);
 
-  function setParam(key, value) {
+  function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     const cleaned = value.trim();
 
@@ -216,10 +241,7 @@ export default function TutorsClient() {
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div className="flex flex-col gap-2">
-              <label
-                htmlFor="search"
-                className="text-sm font-medium text-white/80"
-              >
+              <label htmlFor="search" className="text-sm font-medium text-white/80">
                 Search
               </label>
               <input
@@ -233,10 +255,7 @@ export default function TutorsClient() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label
-                htmlFor="category"
-                className="text-sm font-medium text-white/80"
-              >
+              <label htmlFor="category" className="text-sm font-medium text-white/80">
                 Category
               </label>
               <select
@@ -250,11 +269,7 @@ export default function TutorsClient() {
                   All categories
                 </option>
                 {Object.keys(SUBJECT_CATALOG).map((category) => (
-                  <option
-                    key={category}
-                    className="bg-slate-900"
-                    value={category}
-                  >
+                  <option key={category} className="bg-slate-900" value={category}>
                     {category}
                   </option>
                 ))}
@@ -262,10 +277,7 @@ export default function TutorsClient() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label
-                htmlFor="course"
-                className="text-sm font-medium text-white/80"
-              >
+              <label htmlFor="course" className="text-sm font-medium text-white/80">
                 Course / Subject
               </label>
               <select
@@ -287,10 +299,7 @@ export default function TutorsClient() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label
-                htmlFor="curriculum"
-                className="text-sm font-medium text-white/80"
-              >
+              <label htmlFor="curriculum" className="text-sm font-medium text-white/80">
                 Curriculum
               </label>
               <select
@@ -304,11 +313,7 @@ export default function TutorsClient() {
                   All curricula
                 </option>
                 {CURRICULUM_OPTIONS.map((curriculum) => (
-                  <option
-                    key={curriculum}
-                    className="bg-slate-900"
-                    value={curriculum}
-                  >
+                  <option key={curriculum} className="bg-slate-900" value={curriculum}>
                     {curriculum}
                   </option>
                 ))}
@@ -389,13 +394,10 @@ export default function TutorsClient() {
                   </div>
                 </div>
 
-                <p className="mt-4 line-clamp-4 text-sm text-white/70">
-                  {t.bio}
-                </p>
+                <p className="mt-4 line-clamp-4 text-sm text-white/70">{t.bio}</p>
 
                 <div className="mt-6 flex items-center justify-between">
                   <span className="text-sm text-white/60">View profile →</span>
-
                   <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
                     Available
                   </span>

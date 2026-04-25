@@ -12,7 +12,7 @@ export default async function StudentDashboardPage() {
 
   const userId = (session.user as any).id;
 
-  const [assignments, bookings] = await Promise.all([
+  const [rawAssignments, rawBookings] = await Promise.all([
     prisma.studentTutorAssignment.findMany({
       where: { studentId: userId },
       include: {
@@ -32,9 +32,43 @@ export default async function StudentDashboardPage() {
     }),
   ]);
 
+  const assignments = rawAssignments.map((assignment) => ({
+    id: assignment.id,
+    accumulatedTotal: Number(assignment.accumulatedTotal),
+    tutor: {
+      id: assignment.tutor.id,
+      name: assignment.tutor.name,
+      email: assignment.tutor.email,
+      hourlyRate: assignment.tutor.hourlyRate,
+    },
+    sessions: assignment.sessions.map((s) => ({
+      id: s.id,
+      lessonDate: s.lessonDate.toISOString(),
+      startTime: s.startTime,
+      endTime: s.endTime,
+      notes: s.notes,
+      durationHours: Number(s.durationHours),
+      amount: Number(s.amount),
+    })),
+  }));
+
+  const bookings = rawBookings.map((b) => ({
+    id: b.id,
+    subject: b.subject,
+    preferredTimes: b.preferredTimes,
+    status: b.status,
+    createdAt: b.createdAt.toISOString(),
+    tutor: {
+      id: b.tutor.id,
+      name: b.tutor.name,
+      email: b.tutor.email,
+      hourlyRate: b.tutor.hourlyRate,
+    },
+  }));
+
   const allSessions = assignments.flatMap((assignment) =>
-    assignment.sessions.map((session) => ({
-      ...session,
+    assignment.sessions.map((s) => ({
+      ...s,
       tutorName: assignment.tutor.name,
       tutorEmail: assignment.tutor.email,
       tutorRate: assignment.tutor.hourlyRate,
@@ -44,29 +78,19 @@ export default async function StudentDashboardPage() {
 
   const now = new Date();
 
-  const sortedUpcomingSessions = allSessions
-    .filter((session) => new Date(session.lessonDate) >= now)
+  const upcomingSessions = allSessions
+    .filter((s) => new Date(s.lessonDate) >= now)
     .sort(
       (a, b) =>
         new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
     );
 
-  const nextSession = sortedUpcomingSessions[0] || null;
+  const nextSession = upcomingSessions[0] || null;
 
   const totalSpent = assignments.reduce(
     (sum, assignment) => sum + Number(assignment.accumulatedTotal),
     0
   );
-
-  const totalSessions = allSessions.length;
-
-  const upcomingCount = sortedUpcomingSessions.length;
-
-  const completedSessions = allSessions.filter(
-    (session) => new Date(session.lessonDate) < now
-  ).length;
-
-  const uniqueSubjects = Array.from(new Set(bookings.map((b) => b.subject)));
 
   const bookingStats = {
     pending: bookings.filter((b) => b.status.toLowerCase() === "pending").length,
@@ -83,11 +107,13 @@ export default async function StudentDashboardPage() {
       nextSession={nextSession}
       stats={{
         totalSpent,
-        totalSessions,
-        upcomingCount,
-        completedSessions,
+        totalSessions: allSessions.length,
+        upcomingCount: upcomingSessions.length,
+        completedSessions: allSessions.filter(
+          (s) => new Date(s.lessonDate) < now
+        ).length,
         assignedTutors: assignments.length,
-        uniqueSubjectsCount: uniqueSubjects.length,
+        uniqueSubjectsCount: new Set(bookings.map((b) => b.subject)).size,
         bookingStats,
       }}
     />

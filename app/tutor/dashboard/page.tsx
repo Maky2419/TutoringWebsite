@@ -42,38 +42,63 @@ export default async function TutorDashboardPage() {
 
   const now = new Date();
 
-  const allSessions = tutor.assignedStudents.flatMap((assignment) =>
-    assignment.sessions.map((session) => ({
-      ...session,
+  const assignedStudents = tutor.assignedStudents.map((assignment) => ({
+    id: assignment.id,
+    studentId: assignment.studentId,
+    accumulatedTotal: Number(assignment.accumulatedTotal),
+    student: {
+      id: assignment.student.id,
+      name: assignment.student.name,
+      email: assignment.student.email,
+    },
+    sessions: assignment.sessions.map((s) => ({
+      id: s.id,
+      lessonDate: s.lessonDate.toISOString(),
+      startTime: s.startTime,
+      endTime: s.endTime,
+      notes: s.notes,
+      durationHours: Number(s.durationHours),
+      amount: Number(s.amount),
+    })),
+  }));
+
+  const bookings = tutor.bookings.map((b) => ({
+    id: b.id,
+    subject: b.subject,
+    preferredTimes: b.preferredTimes,
+    status: b.status,
+    createdAt: b.createdAt.toISOString(),
+    studentName: b.studentName,
+    studentEmail: b.studentEmail,
+  }));
+
+  const allSessions = assignedStudents.flatMap((assignment) =>
+    assignment.sessions.map((s) => ({
+      ...s,
       studentName: assignment.student.name,
       studentEmail: assignment.student.email,
     }))
   );
 
-  const sortedUpcomingSessions = allSessions
-    .filter((session) => new Date(session.lessonDate) >= now)
+  const upcomingSessions = allSessions
+    .filter((s) => new Date(s.lessonDate) >= now)
     .sort(
       (a, b) =>
         new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
     );
 
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = now.toISOString().split("T")[0];
 
   const todaysSessions = allSessions.filter(
-    (session) => new Date(session.lessonDate).toISOString().split("T")[0] === todayStr
+    (s) => new Date(s.lessonDate).toISOString().split("T")[0] === todayStr
   ).length;
 
-  const totalEarnings = tutor.assignedStudents.reduce(
+  const totalEarnings = assignedStudents.reduce(
     (sum, assignment) => sum + Number(assignment.accumulatedTotal),
     0
   );
 
-  const totalStudents = tutor.assignedStudents.length;
-
-  const totalSessions = allSessions.length;
-
-  const pendingBookings = tutor.bookings.filter(
+  const pendingBookings = bookings.filter(
     (booking) => booking.status.toLowerCase() === "pending"
   ).length;
 
@@ -87,15 +112,16 @@ export default async function TutorDashboardPage() {
         category: tutor.category,
       }}
       userName={session.user.name || tutor.name}
-      assignedStudents={tutor.assignedStudents}
-      bookings={tutor.bookings}
+      assignedStudents={assignedStudents}
+      bookings={bookings}
       allSessions={allSessions}
-      upcomingSessions={sortedUpcomingSessions}
+      upcomingSessions={upcomingSessions}
+      calendarSessions={allSessions}
       stats={{
         todaysSessions,
         totalEarnings,
-        totalStudents,
-        totalSessions,
+        totalStudents: assignedStudents.length,
+        totalSessions: allSessions.length,
         pendingBookings,
       }}
     />
