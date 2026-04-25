@@ -10,6 +10,7 @@ type CalendarSession = {
   studentName: string | null;
   studentEmail: string | null;
   amount: number;
+  status?: string;
 };
 
 export default function TutorCalendar({
@@ -42,6 +43,7 @@ export default function TutorCalendar({
   function getSessionsForDay(day: number) {
     return sessions.filter((session) => {
       const d = new Date(session.lessonDate);
+
       return (
         d.getFullYear() === year &&
         d.getMonth() === month &&
@@ -90,19 +92,40 @@ export default function TutorCalendar({
                   <p className="mb-2 text-sm font-semibold text-white">{day}</p>
 
                   <div className="space-y-2">
-                    {daySessions.slice(0, 2).map((session) => (
-                      <div
-                        key={session.id}
-                        className="rounded-xl bg-emerald-500/10 p-2 text-left"
-                      >
-                        <p className="text-xs font-semibold text-emerald-200">
-                          {session.startTime} - {session.endTime}
-                        </p>
-                        <p className="text-xs text-white/70">
-                          {session.studentName || "Student"}
-                        </p>
-                      </div>
-                    ))}
+                    {daySessions.slice(0, 2).map((session) => {
+                      const isCancelled = session.status === "cancelled";
+
+                      return (
+                        <div
+                          key={session.id}
+                          className={`rounded-xl border p-2 text-left transition ${
+                            isCancelled
+                              ? "border-rose-400/30 bg-rose-500/20"
+                              : "border-emerald-400/10 bg-emerald-500/10"
+                          }`}
+                        >
+                          <p
+                            className={`text-xs font-semibold ${
+                              isCancelled
+                                ? "text-rose-200"
+                                : "text-emerald-200"
+                            }`}
+                          >
+                            {session.startTime} - {session.endTime}
+                          </p>
+
+                          <p className="truncate text-xs text-white/70">
+                            {session.studentName || "Student"}
+                          </p>
+
+                          {isCancelled && (
+                            <p className="mt-1 text-[11px] font-semibold text-rose-300">
+                              Cancelled
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
 
                     {daySessions.length > 2 && (
                       <p className="text-xs text-white/50">

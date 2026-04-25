@@ -22,6 +22,7 @@ type TeachingSession = {
   notes: string | null;
   durationHours: string | number;
   amount: string | number;
+  status?: string;
 };
 
 type AssignmentResponse = {
@@ -78,9 +79,18 @@ export default function TutorScheduleManager() {
 
   const sessions = scheduleData?.assignment.sessions || [];
 
+  const activeSessions = sessions.filter(
+    (session) => session.status !== "cancelled"
+  );
+
+  const cancelledSessions = sessions.filter(
+    (session) => session.status === "cancelled"
+  );
+
   async function loadStudents() {
     const res = await fetch("/api/tutor/students");
     const data = await res.json();
+
     setStudents(data.students || []);
     setAssigned(data.assignedStudents || []);
   }
@@ -93,6 +103,7 @@ export default function TutorScheduleManager() {
 
     const res = await fetch(`/api/tutor/sessions?studentId=${studentId}`);
     const data = await res.json();
+
     setScheduleData(res.ok ? data : null);
   }
 
@@ -166,6 +177,8 @@ export default function TutorScheduleManager() {
   }
 
   function editSession(session: TeachingSession) {
+    if (session.status === "cancelled") return;
+
     setForm({
       sessionId: String(session.id),
       lessonDate: inputDate(session.lessonDate),
@@ -197,13 +210,22 @@ export default function TutorScheduleManager() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
-          <p className="text-xs text-emerald-100/60">Current total</p>
-          <p className="text-2xl font-black text-emerald-300">
-            {scheduleData
-              ? money(scheduleData.assignment.accumulatedTotal)
-              : "$0.00"}
-          </p>
+        <div className="flex flex-wrap gap-3">
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
+            <p className="text-xs text-emerald-100/60">Current total</p>
+            <p className="text-2xl font-black text-emerald-300">
+              {scheduleData
+                ? money(scheduleData.assignment.accumulatedTotal)
+                : "$0.00"}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3">
+            <p className="text-xs text-rose-100/60">Cancelled</p>
+            <p className="text-2xl font-black text-rose-300">
+              {cancelledSessions.length}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -375,9 +397,14 @@ export default function TutorScheduleManager() {
                   </p>
                 </div>
 
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
-                  {sessions.length} total
-                </span>
+                <div className="flex gap-2">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
+                    {activeSessions.length} active
+                  </span>
+                  <span className="rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-300">
+                    {cancelledSessions.length} cancelled
+                  </span>
+                </div>
               </div>
 
               {!selectedStudentId ? (
@@ -392,50 +419,78 @@ export default function TutorScheduleManager() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {sessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="rounded-xl border border-white/10 bg-[#111827] p-3"
-                    >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-white">
-                            {prettyDate(session.lessonDate)}
-                          </p>
-                          <p className="mt-0.5 text-xs text-white/55">
-                            {session.startTime} - {session.endTime}
-                          </p>
-                          {session.notes && (
-                            <p className="mt-2 text-xs text-white/45">
-                              {session.notes}
+                  {sessions.map((session) => {
+                    const isCancelled = session.status === "cancelled";
+
+                    return (
+                      <div
+                        key={session.id}
+                        className={`rounded-xl border p-3 transition ${
+                          isCancelled
+                            ? "border-rose-400/20 bg-rose-500/10"
+                            : "border-white/10 bg-[#111827]"
+                        }`}
+                      >
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-white">
+                              {prettyDate(session.lessonDate)}
                             </p>
-                          )}
-                        </div>
 
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
-                            {money(session.amount)}
-                          </span>
+                            <p className="mt-0.5 text-xs text-white/55">
+                              {session.startTime} - {session.endTime}
+                            </p>
 
-                          <button
-                            type="button"
-                            onClick={() => editSession(session)}
-                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
-                          >
-                            Edit
-                          </button>
+                            {session.notes && (
+                              <p className="mt-2 text-xs text-white/45">
+                                {session.notes}
+                              </p>
+                            )}
 
-                          <button
-                            type="button"
-                            onClick={() => deleteSession(session.id)}
-                            className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/20"
-                          >
-                            Delete
-                          </button>
+                            {isCancelled && (
+                              <p className="mt-2 text-xs font-semibold text-rose-300">
+                                Cancelled by student
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-bold ${
+                                isCancelled
+                                  ? "bg-rose-400/10 text-rose-300"
+                                  : "bg-emerald-400/10 text-emerald-300"
+                              }`}
+                            >
+                              {isCancelled
+                                ? "Cancelled"
+                                : money(session.amount)}
+                            </span>
+
+                            {!isCancelled && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => editSession(session)}
+                                  className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => deleteSession(session.id)}
+                                  className="rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/20"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>

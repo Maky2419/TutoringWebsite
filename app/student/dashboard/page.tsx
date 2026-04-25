@@ -11,20 +11,27 @@ export default async function StudentDashboardPage() {
   if ((session.user as any).role !== "STUDENT") redirect("/dashboard");
 
   const userId = (session.user as any).id;
+  const userEmail = session.user.email || "";
 
   const [rawAssignments, rawBookings] = await Promise.all([
     prisma.studentTutorAssignment.findMany({
-      where: { studentId: userId },
+      where: {
+        OR: [{ studentId: userId }, { student: { email: userEmail } }],
+      },
       include: {
         tutor: true,
+        student: true,
         sessions: {
           orderBy: { lessonDate: "asc" },
         },
       },
       orderBy: { createdAt: "desc" },
     }),
+
     prisma.booking.findMany({
-      where: { studentUserId: userId },
+      where: {
+        OR: [{ studentUserId: userId }, { studentEmail: userEmail }],
+      },
       include: {
         tutor: true,
       },
@@ -32,25 +39,35 @@ export default async function StudentDashboardPage() {
     }),
   ]);
 
-  const assignments = rawAssignments.map((assignment) => ({
-    id: assignment.id,
-    accumulatedTotal: Number(assignment.accumulatedTotal),
-    tutor: {
-      id: assignment.tutor.id,
-      name: assignment.tutor.name,
-      email: assignment.tutor.email,
-      hourlyRate: assignment.tutor.hourlyRate,
-    },
-    sessions: assignment.sessions.map((s) => ({
-      id: s.id,
-      lessonDate: s.lessonDate.toISOString(),
-      startTime: s.startTime,
-      endTime: s.endTime,
-      notes: s.notes,
-      durationHours: Number(s.durationHours),
-      amount: Number(s.amount),
-    })),
-  }));
+  const assignments = rawAssignments.map((assignment) => {
+    const activeSessions = assignment.sessions.filter(
+      (s) => s.status !== "cancelled"
+    );
+
+    return {
+      id: assignment.id,
+      accumulatedTotal: activeSessions.reduce(
+        (sum, s) => sum + Number(s.amount),
+        0
+      ),
+      tutor: {
+        id: assignment.tutor.id,
+        name: assignment.tutor.name,
+        email: assignment.tutor.email,
+        hourlyRate: assignment.tutor.hourlyRate,
+      },
+      sessions: activeSessions.map((s) => ({
+        id: s.id,
+        lessonDate: s.lessonDate.toISOString(),
+        startTime: s.startTime,
+        endTime: s.endTime,
+        notes: s.notes,
+        durationHours: Number(s.durationHours),
+        amount: Number(s.amount),
+        status: s.status,
+      })),
+    };
+  });
 
   const bookings = rawBookings.map((b) => ({
     id: b.id,
@@ -93,9 +110,12 @@ export default async function StudentDashboardPage() {
   );
 
   const bookingStats = {
-    pending: bookings.filter((b) => b.status.toLowerCase() === "pending").length,
-    accepted: bookings.filter((b) => b.status.toLowerCase() === "accepted").length,
-    declined: bookings.filter((b) => b.status.toLowerCase() === "declined").length,
+    pending: bookings.filter((b) => b.status.toLowerCase() === "pending")
+      .length,
+    accepted: bookings.filter((b) => b.status.toLowerCase() === "accepted")
+      .length,
+    declined: bookings.filter((b) => b.status.toLowerCase() === "declined")
+      .length,
   };
 
   return (

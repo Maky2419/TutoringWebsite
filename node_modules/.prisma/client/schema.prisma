@@ -98,6 +98,7 @@ model TeachingSession {
   notes         String?                @db.Text
   durationHours Decimal                @db.Decimal(5, 2)
   amount        Decimal                @db.Decimal(10, 2)
+  status        String                 @default("scheduled")
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
   assignment    StudentTutorAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)

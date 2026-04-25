@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../../lib/auth";
 import { prisma } from "../../../../../lib/prisma";
 
-export async function DELETE(
+export async function PATCH(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -27,37 +27,16 @@ export async function DELETE(
         studentId: userId,
       },
     },
-    include: {
-      assignment: true,
-    },
   });
 
   if (!teachingSession) {
-    return NextResponse.json(
-      { error: "Session not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  await prisma.teachingSession.delete({
+  await prisma.teachingSession.update({
     where: { id: sessionId },
-  });
-
-  const total = await prisma.teachingSession.aggregate({
-    where: {
-      assignmentId: teachingSession.assignmentId,
-    },
-    _sum: {
-      amount: true,
-    },
-  });
-
-  await prisma.studentTutorAssignment.update({
-    where: {
-      id: teachingSession.assignmentId,
-    },
     data: {
-      accumulatedTotal: total._sum.amount || 0,
+      status: "cancelled",
     },
   });
 

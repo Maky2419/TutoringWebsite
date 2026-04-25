@@ -13,7 +13,9 @@ export default async function TutorDashboardPage() {
   const userId = (session.user as any).id;
 
   const tutor = await prisma.tutor.findFirst({
-    where: { userId },
+    where: {
+      OR: [{ userId }, { email: session.user.email || "" }],
+    },
     include: {
       assignedStudents: {
         include: {
@@ -40,8 +42,6 @@ export default async function TutorDashboardPage() {
     );
   }
 
-  const now = new Date();
-
   const assignedStudents = tutor.assignedStudents.map((assignment) => ({
     id: assignment.id,
     studentId: assignment.studentId,
@@ -59,6 +59,7 @@ export default async function TutorDashboardPage() {
       notes: s.notes,
       durationHours: Number(s.durationHours),
       amount: Number(s.amount),
+      status: s.status,
     })),
   }));
 
@@ -80,7 +81,11 @@ export default async function TutorDashboardPage() {
     }))
   );
 
-  const upcomingSessions = allSessions
+  const now = new Date();
+
+  const activeSessions = allSessions.filter((s) => s.status !== "cancelled");
+
+  const upcomingSessions = activeSessions
     .filter((s) => new Date(s.lessonDate) >= now)
     .sort(
       (a, b) =>
@@ -89,7 +94,7 @@ export default async function TutorDashboardPage() {
 
   const todayStr = now.toISOString().split("T")[0];
 
-  const todaysSessions = allSessions.filter(
+  const todaysSessions = activeSessions.filter(
     (s) => new Date(s.lessonDate).toISOString().split("T")[0] === todayStr
   ).length;
 
@@ -121,7 +126,7 @@ export default async function TutorDashboardPage() {
         todaysSessions,
         totalEarnings,
         totalStudents: assignedStudents.length,
-        totalSessions: allSessions.length,
+        totalSessions: activeSessions.length,
         pendingBookings,
       }}
     />

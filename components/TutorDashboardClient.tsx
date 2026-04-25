@@ -18,6 +18,7 @@ type SessionBase = {
   notes: string | null;
   durationHours: string | number;
   amount: string | number;
+  status?: string;
 };
 
 type AssignedStudent = {
@@ -69,7 +70,7 @@ type Props = {
 };
 
 function formatMoney(value: number | string) {
-  return `$${Number(value).toFixed(2)}`;
+  return `$${Number(value || 0).toFixed(2)}`;
 }
 
 function formatDate(dateValue: Date | string) {
@@ -95,24 +96,6 @@ function getStatusClasses(status: string) {
   return "bg-amber-500/15 text-amber-200 border border-amber-400/20";
 }
 
-function StatCard({
-  title,
-  value,
-  subtext,
-}: {
-  title: string;
-  value: string;
-  subtext: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/10">
-      <p className="text-sm text-white/60">{title}</p>
-      <p className="mt-2 text-3xl font-bold text-white">{value}</p>
-      <p className="mt-2 text-sm text-white/50">{subtext}</p>
-    </div>
-  );
-}
-
 function SectionCard({
   title,
   subtitle,
@@ -133,6 +116,24 @@ function SectionCard({
   );
 }
 
+function StatCard({
+  title,
+  value,
+  subtext,
+}: {
+  title: string;
+  value: string;
+  subtext: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/10">
+      <p className="text-sm text-white/60">{title}</p>
+      <p className="mt-2 text-3xl font-bold text-white">{value}</p>
+      <p className="mt-2 text-sm text-white/50">{subtext}</p>
+    </div>
+  );
+}
+
 export default function TutorDashboardClient({
   tutor,
   userName,
@@ -149,6 +150,10 @@ export default function TutorDashboardClient({
     .sort((a, b) => Number(b.accumulatedTotal) - Number(a.accumulatedTotal))
     .slice(0, 5);
 
+  const cancelledSessions = allSessions.filter(
+    (session) => session.status === "cancelled"
+  );
+
   const normalizedCalendarSessions = calendarSessions.map((session) => ({
     id: session.id,
     lessonDate:
@@ -160,6 +165,7 @@ export default function TutorDashboardClient({
     studentName: session.studentName,
     studentEmail: session.studentEmail,
     amount: Number(session.amount),
+    status: session.status,
   }));
 
   return (
@@ -200,7 +206,7 @@ export default function TutorDashboardClient({
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <StatCard
             title="Today’s Sessions"
             value={String(stats.todaysSessions)}
@@ -209,29 +215,34 @@ export default function TutorDashboardClient({
           <StatCard
             title="Active Students"
             value={String(stats.totalStudents)}
-            subtext="Students currently assigned to you"
+            subtext="Students assigned to you"
           />
           <StatCard
             title="Total Sessions"
             value={String(stats.totalSessions)}
-            subtext="All sessions recorded so far"
+            subtext="Active sessions recorded"
+          />
+          <StatCard
+            title="Cancelled"
+            value={String(cancelledSessions.length)}
+            subtext="Sessions cancelled by students"
           />
           <StatCard
             title="Pending Bookings"
             value={String(stats.pendingBookings)}
-            subtext="Booking requests waiting on action"
+            subtext="Booking requests waiting"
           />
           <StatCard
             title="Total Earnings"
             value={formatMoney(stats.totalEarnings)}
-            subtext="Running revenue from your assigned students"
+            subtext="Running revenue"
           />
         </div>
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.3fr_1fr]">
           <SectionCard
             title="Upcoming sessions"
-            subtitle="This gives tutors a fast operational view of what is coming next."
+            subtitle="Cancelled sessions are excluded from this list."
           >
             <div className="space-y-4">
               {upcomingSessions.length === 0 ? (
@@ -317,19 +328,19 @@ export default function TutorDashboardClient({
         <div className="mt-8">
           <SectionCard
             title="Tutor calendar"
-            subtitle="See all scheduled tutoring sessions in a monthly calendar view."
+            subtitle="Green sessions are active. Red sessions were cancelled by students."
           >
             <TutorCalendar sessions={normalizedCalendarSessions} />
           </SectionCard>
         </div>
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.35fr_1fr]">
-         <TutorScheduleManager />
+          <TutorScheduleManager />
 
           <div className="space-y-8">
             <SectionCard
               title="Recent booking requests"
-              subtitle="This makes the tutor dashboard feel more like a real service platform."
+              subtitle="Incoming booking requests from students."
             >
               <div className="space-y-4">
                 {recentBookings.length === 0 ? (
@@ -381,18 +392,20 @@ export default function TutorDashboardClient({
                   </p>
                   <p className="mt-2 text-3xl font-bold text-white">
                     {assignedStudents.length > 0
-                      ? formatMoney(stats.totalEarnings / assignedStudents.length)
+                      ? formatMoney(
+                          stats.totalEarnings / assignedStudents.length
+                        )
                       : "$0.00"}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">
-                    Average revenue per session
+                    Average revenue per active session
                   </p>
                   <p className="mt-2 text-3xl font-bold text-white">
-                    {allSessions.length > 0
-                      ? formatMoney(stats.totalEarnings / allSessions.length)
+                    {stats.totalSessions > 0
+                      ? formatMoney(stats.totalEarnings / stats.totalSessions)
                       : "$0.00"}
                   </p>
                 </div>
