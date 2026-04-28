@@ -62,8 +62,7 @@ async function main() {
       category: "STEM",
       subjects: ["Mathematics", "Computer Science", "Java", "Python", "Data Science"],
       curriculum: ["IB", "AP", "University"],
-      bio: "Fourth-year undergraduate student nearing graduation in Computer Science and Mathematics at the University of British Columbia. I have over eight years of teaching experience working with students from middle school through second-year university. I teach mathematics and computer science with a focus on deep conceptual understanding rather than memorization. My lessons include exam preparation, custom practice questions, and structured problem solving so students feel confident and fully prepared before exams.",
-      education: "BSc Computer Science and Mathematics – University of British Columbia",
+      bio: "Recent graduate in Computer Science and Mathematics from the University of British Columbia, currently working with an AI company. I have over eight years of teaching experience working with students from middle school through second-year university. I teach mathematics and computer science with a focus on deep conceptual understanding rather than memorization. My lessons include exam preparation, custom practice questions, and structured problem solving so students feel confident and fully prepared before exams.",      education: "BSc Computer Science and Mathematics – University of British Columbia",
       hourlyRate: 55,
       userId: tutorUser.id,
     },
@@ -111,6 +110,38 @@ async function main() {
       hourlyRate: 55,
       userId: null,
     },
+    {
+  name: "Hamza Khan",
+  email: "hkhan15@student.ubc.ca",
+  category: "STEM",
+  subjects: ["Mathematics", "Calculus", "Physics"],
+  curriculum: ["AP", "University"],
+  bio: "Student at the University of British Columbia Okanagan pursuing Electrical Engineering. I have a deep passion for problem-solving and a strong background in advanced mathematical topics and their applications. I enjoy breaking down intimidating topics into manageable, logical steps to help students build genuine confidence. I am familiar with the AP curriculum and can adapt to different syllabuses with ease.",
+  education: "Current Undergraduate Student, School of Engineering – University of British Columbia Okanagan",
+  hourlyRate: 50,
+  userId: null,
+},
+{
+  name: "Noor Sekhon",
+  email: "noorsekhon2004@gmail.com",
+  category: "Business & Economics",
+  subjects: ["Corporate Finance", "Accounting", "Economics"],
+  curriculum: ["University"],
+  bio: "Fourth-year Bachelor of Commerce student at the University of British Columbia Okanagan specializing in Finance. I focus on helping students understand how and why concepts work, not just memorize steps. My approach is structured and logical, breaking down complex material into clear steps so students can solve problems efficiently and confidently.",
+  education: "Bachelor of Commerce in Finance – University of British Columbia Okanagan",
+  hourlyRate: 45,
+  userId: null,
+},
+{
+  name: "Samiha Ahmed",
+  email: "samiha.ahmed@example.com", // replace with real email
+  category: "STEM",
+  subjects: ["Mathematics", "Calculus", "Biology", "Chemistry"],
+  curriculum: ["AP", "University"],
+  bio: "I am a freshman at NYU Abu Dhabi with a strong academic background in the AP curriculum, specializing in Mathematics, Biology, and Chemistry. I teach Mathematics up to Calculus and focus on helping students build a solid conceptual foundation rather than relying on memorization by breaking down complex topics into clear, logical steps. Having recently studied these subjects at a high level, I understand common student challenges and tailor my teaching to address them with patience and structure. I also emphasize problem-solving skills, effective study habits, and exam strategies so students can improve their performance while gaining long-term confidence in STEM subjects.",  education: "Undergraduate Student – NYU Abu Dhabi",
+  hourlyRate: 40,
+  userId: null,
+},
   ];
 
   for (const t of tutors) {
