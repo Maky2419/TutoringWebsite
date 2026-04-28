@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import StudentScheduleView from "./StudentScheduleView";
-import TuitionPaymentBox from "./TuitionPaymentBox";
 
 type Tutor = {
   id: number;
@@ -38,11 +37,7 @@ type TeachingSession = {
 type Assignment = {
   id: number;
   accumulatedTotal: string | number;
-  purchasedHours: string | number;
-  usedHours: string | number;
-  tutor: Tutor & {
-    paymentFrequency: string;
-  };
+  tutor: Tutor;
   sessions: {
     id: number;
     lessonDate: Date | string;
@@ -306,12 +301,8 @@ export default function StudentDashboardClient({
             </div>
           </SectionCard>
         </div>
-        <div className="mt-8">
-  <TuitionPaymentBox assignments={assignments} />
-</div>
 
         <div className="mt-8">
-          
           <SectionCard
             title="Session calendar"
             subtitle="View your confirmed scheduled lessons by date."

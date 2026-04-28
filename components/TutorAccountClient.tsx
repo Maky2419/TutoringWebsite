@@ -59,22 +59,10 @@ export default function TutorAccountClient({
   const [student, setStudent] = useState("");
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
-
-  const [saveState, setSaveState] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
-
-  const [reviewState, setReviewState] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
-
-  const [stripeState, setStripeState] = useState<
-    "idle" | "loading" | "error"
-  >("idle");
-
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [reviewState, setReviewState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
-  const [stripeMessage, setStripeMessage] = useState("");
 
   const averageRating = useMemo(() => {
     if (reviews.length === 0) return 0;
@@ -85,7 +73,6 @@ export default function TutorAccountClient({
     const value = subjectInput.trim();
 
     if (!value) return;
-
     if (subjects.some((subject) => subject.toLowerCase() === value.toLowerCase())) {
       setSubjectInput("");
       return;
@@ -96,31 +83,7 @@ export default function TutorAccountClient({
   }
 
   function removeSubject(subjectToRemove: string) {
-    setSubjects((current) =>
-      current.filter((subject) => subject !== subjectToRemove)
-    );
-  }
-
-  async function handleStripeOnboarding() {
-    setStripeState("loading");
-    setStripeMessage("");
-
-    try {
-      const response = await fetch("/api/stripe/connect/onboard", {
-        method: "POST",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Could not start Stripe onboarding.");
-      }
-
-      window.location.href = data.url;
-    } catch (error: any) {
-      setStripeState("error");
-      setStripeMessage(error?.message || "Something went wrong.");
-    }
+    setSubjects((current) => current.filter((subject) => subject !== subjectToRemove));
   }
 
   async function handleSaveProfile(e: React.FormEvent<HTMLFormElement>) {
@@ -189,7 +152,6 @@ export default function TutorAccountClient({
         },
         ...current,
       ]);
-
       setStudent("");
       setRating("5");
       setComment("");
@@ -210,11 +172,9 @@ export default function TutorAccountClient({
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-violet-200/80">
                 Tutor account
               </p>
-              <h1 className="mt-3 text-4xl font-bold text-white">
-                Manage your public profile
-              </h1>
+              <h1 className="mt-3 text-4xl font-bold text-white">Manage your public profile</h1>
               <p className="mt-3 max-w-2xl text-white/65">
-                Update the information students see on your tutor profile and activate Stripe payouts.
+                Update the information students see on your tutor profile and add social proof with reviews.
               </p>
             </div>
 
@@ -235,36 +195,6 @@ export default function TutorAccountClient({
           </div>
         </div>
 
-        <div className="mt-8">
-          <SectionCard
-            title="Stripe payouts"
-            subtitle="Activate your payout account so students can pay you through the platform."
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-white/70">
-                  Students cannot pay until your Stripe payout account is connected.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleStripeOnboarding}
-                disabled={stripeState === "loading"}
-                className="rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {stripeState === "loading"
-                  ? "Opening Stripe..."
-                  : "Activate Stripe payouts"}
-              </button>
-            </div>
-
-            {stripeMessage && (
-              <p className="mt-3 text-sm text-rose-300">{stripeMessage}</p>
-            )}
-          </SectionCard>
-        </div>
-
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
           <SectionCard
             title="Profile details"
@@ -273,20 +203,15 @@ export default function TutorAccountClient({
             <form className="space-y-6" onSubmit={handleSaveProfile}>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Name
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-white/80">Name</label>
                   <input
                     value={initialProfile.name}
                     disabled
                     className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white/60 outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Email
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-white/80">Email</label>
                   <input
                     value={initialProfile.email}
                     disabled
@@ -296,10 +221,7 @@ export default function TutorAccountClient({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/80">
-                  Subjects
-                </label>
-
+                <label className="mb-2 block text-sm font-medium text-white/80">Subjects</label>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input
                     value={subjectInput}
@@ -313,7 +235,6 @@ export default function TutorAccountClient({
                     placeholder="Add a subject like Calculus or Chemistry"
                     className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-white/35"
                   />
-
                   <button
                     type="button"
                     onClick={addSubject}
@@ -344,9 +265,7 @@ export default function TutorAccountClient({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/80">
-                  Education
-                </label>
+                <label className="mb-2 block text-sm font-medium text-white/80">Education</label>
                 <textarea
                   value={education}
                   onChange={(e) => setEducation(e.target.value)}
@@ -357,9 +276,7 @@ export default function TutorAccountClient({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/80">
-                  Bio
-                </label>
+                <label className="mb-2 block text-sm font-medium text-white/80">Bio</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -377,7 +294,6 @@ export default function TutorAccountClient({
                 >
                   {saveState === "saving" ? "Saving..." : "Save profile"}
                 </button>
-
                 {saveMessage && (
                   <p
                     className={`text-sm ${
@@ -399,27 +315,19 @@ export default function TutorAccountClient({
               <div className="space-y-4">
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">Subjects listed</p>
-                  <p className="mt-2 text-3xl font-bold text-white">
-                    {subjects.length}
-                  </p>
+                  <p className="mt-2 text-3xl font-bold text-white">{subjects.length}</p>
                 </div>
-
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">Reviews</p>
-                  <p className="mt-2 text-3xl font-bold text-white">
-                    {reviews.length}
-                  </p>
+                  <p className="mt-2 text-3xl font-bold text-white">{reviews.length}</p>
                 </div>
-
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">Average rating</p>
                   <p className="mt-2 text-3xl font-bold text-amber-300">
                     {reviews.length === 0 ? "New" : averageRating.toFixed(1)}
                   </p>
                   {reviews.length > 0 && (
-                    <p className="mt-2 text-sm text-white/65">
-                      {stars(averageRating)}
-                    </p>
+                    <p className="mt-2 text-sm text-white/65">{stars(averageRating)}</p>
                   )}
                 </div>
               </div>
@@ -431,9 +339,7 @@ export default function TutorAccountClient({
             >
               <form className="space-y-4" onSubmit={handleAddReview}>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Student name
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-white/80">Student name</label>
                   <input
                     value={student}
                     onChange={(e) => setStudent(e.target.value)}
@@ -443,9 +349,7 @@ export default function TutorAccountClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Rating
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-white/80">Rating</label>
                   <select
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
@@ -460,9 +364,7 @@ export default function TutorAccountClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">
-                    Comment
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-white/80">Comment</label>
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
@@ -480,13 +382,10 @@ export default function TutorAccountClient({
                   >
                     {reviewState === "saving" ? "Adding..." : "Add review"}
                   </button>
-
                   {reviewMessage && (
                     <p
                       className={`text-sm ${
-                        reviewState === "error"
-                          ? "text-rose-300"
-                          : "text-emerald-300"
+                        reviewState === "error" ? "text-rose-300" : "text-emerald-300"
                       }`}
                     >
                       {reviewMessage}
@@ -516,21 +415,14 @@ export default function TutorAccountClient({
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-white">
-                          {review.student}
-                        </p>
-                        <p className="mt-1 text-sm text-amber-300">
-                          {stars(review.rating)}
-                        </p>
+                        <p className="font-semibold text-white">{review.student}</p>
+                        <p className="mt-1 text-sm text-amber-300">{stars(review.rating)}</p>
                       </div>
                       <p className="text-sm text-white/45">
                         {new Date(review.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-
-                    <p className="mt-4 text-sm leading-6 text-white/75">
-                      {review.comment}
-                    </p>
+                    <p className="mt-4 text-sm leading-6 text-white/75">{review.comment}</p>
                   </div>
                 ))}
               </div>
