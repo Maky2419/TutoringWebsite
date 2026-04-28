@@ -1,11 +1,10 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/api/tutor/students/route": "app/api/tutor/students/route.js",
-  "/api/tutor/sessions/route": "app/api/tutor/sessions/route.js",
+  "/tutor/account/page": "app/tutor/account/page.js",
+  "/tutors/[id]/page": "app/tutors/[id]/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/login/page": "app/login/page.js",
   "/page": "app/page.js",
-  "/student/dashboard/page": "app/student/dashboard/page.js"
+  "/login/page": "app/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/student/dashboard/page": "app/student/dashboard/page.js",
+  "/api/stripe/create-payment-intent/route": "app/api/stripe/create-payment-intent/route.js"
 }

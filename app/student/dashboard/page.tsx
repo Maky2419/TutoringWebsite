@@ -39,35 +39,43 @@ export default async function StudentDashboardPage() {
     }),
   ]);
 
-  const assignments = rawAssignments.map((assignment) => {
-    const activeSessions = assignment.sessions.filter(
-      (s) => s.status !== "cancelled"
-    );
+ const assignments = rawAssignments.map((assignment) => {
+  const activeSessions = assignment.sessions.filter(
+    (s) => s.status !== "cancelled"
+  );
 
-    return {
-      id: assignment.id,
-      accumulatedTotal: activeSessions.reduce(
-        (sum, s) => sum + Number(s.amount),
-        0
-      ),
-      tutor: {
-        id: assignment.tutor.id,
-        name: assignment.tutor.name,
-        email: assignment.tutor.email,
-        hourlyRate: assignment.tutor.hourlyRate,
-      },
-      sessions: activeSessions.map((s) => ({
-        id: s.id,
-        lessonDate: s.lessonDate.toISOString(),
-        startTime: s.startTime,
-        endTime: s.endTime,
-        notes: s.notes,
-        durationHours: Number(s.durationHours),
-        amount: Number(s.amount),
-        status: s.status,
-      })),
-    };
-  });
+  const usedHours = activeSessions.reduce(
+    (sum, s) => sum + Number(s.durationHours),
+    0
+  );
+
+  return {
+    id: assignment.id,
+    accumulatedTotal: activeSessions.reduce(
+      (sum, s) => sum + Number(s.amount),
+      0
+    ),
+    purchasedHours: Number(assignment.purchasedHours),
+    usedHours,
+    tutor: {
+      id: assignment.tutor.id,
+      name: assignment.tutor.name,
+      email: assignment.tutor.email,
+      hourlyRate: assignment.tutor.hourlyRate,
+      paymentFrequency: assignment.tutor.paymentFrequency,
+    },
+    sessions: activeSessions.map((s) => ({
+      id: s.id,
+      lessonDate: s.lessonDate.toISOString(),
+      startTime: s.startTime,
+      endTime: s.endTime,
+      notes: s.notes,
+      durationHours: Number(s.durationHours),
+      amount: Number(s.amount),
+      status: s.status,
+    })),
+  };
+});
 
   const bookings = rawBookings.map((b) => ({
     id: b.id,
