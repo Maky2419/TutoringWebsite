@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import StudentScheduleView from "./StudentScheduleView";
+import { generateInvoice } from "@/lib/generateInvoice";
 
 type Tutor = {
   id: number;
@@ -28,15 +29,20 @@ type TeachingSession = {
   notes: string | null;
   durationHours: string | number;
   amount: string | number;
+  status?: string;
   tutorName: string;
   tutorEmail: string;
   tutorRate: number;
   assignmentTotal: string | number;
+  assignmentPaid?: string | number;
+  assignmentRemaining?: string | number;
 };
 
 type Assignment = {
   id: number;
   accumulatedTotal: string | number;
+  amountPaid?: string | number;
+  remainingBalance?: string | number;
   tutor: Tutor;
   sessions: {
     id: number;
@@ -46,6 +52,7 @@ type Assignment = {
     notes: string | null;
     durationHours: string | number;
     amount: string | number;
+    status?: string;
   }[];
 };
 
@@ -57,6 +64,8 @@ type Props = {
   nextSession: TeachingSession | null;
   stats: {
     totalSpent: number;
+    totalConfirmedPaid: number;
+    remainingBalance: number;
     totalSessions: number;
     upcomingCount: number;
     completedSessions: number;
@@ -71,7 +80,7 @@ type Props = {
 };
 
 function formatMoney(value: number | string) {
-  return `$${Number(value || 0).toFixed(2)}`;
+  return `AED ${Number(value || 0).toFixed(2)}`;
 }
 
 function formatDate(dateValue: Date | string) {
@@ -131,22 +140,22 @@ export default function StudentDashboardClient({
   const router = useRouter();
 
   async function cancelSession(sessionId: number) {
-  const confirmed = confirm("Are you sure you want to cancel this session?");
-  if (!confirmed) return;
+    const confirmed = confirm("Are you sure you want to cancel this session?");
+    if (!confirmed) return;
 
-  const res = await fetch(`/api/student/sessions/${sessionId}`, {
-    method: "PATCH",
-  });
+    const res = await fetch(`/api/student/sessions/${sessionId}`, {
+      method: "PATCH",
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    alert(data.error || "Failed to cancel session.");
-    return;
+    if (!res.ok) {
+      alert(data.error || "Failed to cancel session.");
+      return;
+    }
+
+    router.refresh();
   }
-
-  router.refresh();
-}
 
   const totalHours = useMemo(() => {
     return allSessions.reduce(
@@ -158,13 +167,6 @@ export default function StudentDashboardClient({
   const averageSessionCost =
     allSessions.length > 0 ? stats.totalSpent / allSessions.length : 0;
 
-  const recentSessions = [...allSessions]
-    .sort(
-      (a, b) =>
-        new Date(b.lessonDate).getTime() - new Date(a.lessonDate).getTime()
-    )
-    .slice(0, 5);
-
   return (
     <div className="min-h-screen bg-[#07111f]">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -174,29 +176,41 @@ export default function StudentDashboardClient({
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-sky-200/80">
                 Student dashboard
               </p>
+
               <h1 className="mt-3 text-4xl font-bold text-white">
                 Welcome back, {userName}
               </h1>
+
               <p className="mt-3 max-w-2xl text-white/65">
-                View your tutors, scheduled lessons, and learning progress from
-                one place.
+                View your tutors, scheduled lessons, invoices, payments, and
+                learning progress from one place.
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
               <p className="text-sm text-white/60">Next session</p>
+
               {nextSession ? (
                 <>
                   <p className="mt-2 text-lg font-semibold text-white">
                     {nextSession.tutorName}
                   </p>
+
                   <p className="text-sm text-white/70">
                     {formatDate(nextSession.lessonDate)} ·{" "}
                     {nextSession.startTime} - {nextSession.endTime}
                   </p>
+
                   <p className="mt-2 text-sm text-emerald-300">
                     Session amount: {formatMoney(nextSession.amount)}
                   </p>
+
+                  <button
+                    onClick={() => cancelSession(nextSession.id)}
+                    className="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-500/20"
+                  >
+                    Cancel session
+                  </button>
                 </>
               ) : (
                 <p className="mt-2 text-sm text-white/60">
@@ -213,16 +227,19 @@ export default function StudentDashboardClient({
             value={String(stats.assignedTutors)}
             subtext="Tutors linked to your account"
           />
+
           <StatCard
             title="Upcoming Sessions"
             value={String(stats.upcomingCount)}
             subtext="Sessions still ahead of you"
           />
+
           <StatCard
             title="Completed Sessions"
             value={String(stats.completedSessions)}
             subtext="Lessons already finished"
           />
+
           <StatCard
             title="Total Spent"
             value={formatMoney(stats.totalSpent)}
@@ -230,10 +247,74 @@ export default function StudentDashboardClient({
           />
         </div>
 
+        <div className="mt-8">
+          <SectionCard
+            title="Invoices & Payments"
+            subtitle="Generate bank-transfer invoices and track tutor-confirmed payments."
+          >
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                <p className="text-sm text-white/55">Total billed</p>
+                <p className="mt-2 text-3xl font-bold text-white">
+                  {formatMoney(stats.totalSpent)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-emerald-500/10 p-5">
+                <p className="text-sm text-white/55">Confirmed paid</p>
+                <p className="mt-2 text-3xl font-bold text-emerald-300">
+                  {formatMoney(stats.totalConfirmedPaid)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-amber-500/10 p-5">
+                <p className="text-sm text-white/55">Remaining balance</p>
+                <p className="mt-2 text-3xl font-bold text-amber-300">
+                  {formatMoney(stats.remainingBalance)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              {assignments.length === 0 ? (
+                <p className="text-sm text-white/55">
+                  No tutors assigned yet, so no invoice can be generated.
+                </p>
+              ) : (
+                assignments.map((assignment) => {
+                  const tutorSessions = allSessions.filter(
+                    (session) =>
+                      session.tutorEmail === assignment.tutor.email &&
+                      session.status !== "cancelled"
+                  );
+
+                  return (
+                    <button
+                      key={assignment.id}
+                      onClick={() =>
+                        generateInvoice({
+                          studentName: userName || "Student",
+                          tutorName: assignment.tutor.name || "Tutor",
+                          subject: "Tutoring",
+                          sessions: tutorSessions,
+                          amountPaid: Number(assignment.amountPaid || 0),
+                        })
+                      }
+                      className="rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700"
+                    >
+                      Generate Invoice for {assignment.tutor.name}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </SectionCard>
+        </div>
+
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.4fr_1fr]">
           <SectionCard
             title="Assigned tutors"
-            subtitle="Overview of each tutor, rate, and total spending."
+            subtitle="Overview of each tutor, rate, and payment status."
           >
             <div className="space-y-4">
               {assignments.length === 0 ? (
@@ -241,32 +322,50 @@ export default function StudentDashboardClient({
                   No tutors assigned yet.
                 </div>
               ) : (
-                assignments.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-5"
-                  >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <p className="text-lg font-semibold text-white">
-                          {item.tutor.name}
-                        </p>
-                        <p className="text-sm text-white/60">
-                          {item.tutor.email}
-                        </p>
-                      </div>
+                assignments.map((item) => {
+                  const amountPaid = Number(item.amountPaid || 0);
+                  const remaining = Math.max(
+                    Number(item.accumulatedTotal || 0) - amountPaid,
+                    0
+                  );
 
-                      <div className="flex flex-wrap gap-3">
-                        <div className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/75">
-                          Rate: ${item.tutor.hourlyRate}/hr
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-2xl border border-white/10 bg-black/20 p-5"
+                    >
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-lg font-semibold text-white">
+                            {item.tutor.name}
+                          </p>
+
+                          <p className="text-sm text-white/60">
+                            {item.tutor.email}
+                          </p>
                         </div>
-                        <div className="rounded-xl bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300">
-                          Total: {formatMoney(item.accumulatedTotal)}
+
+                        <div className="flex flex-wrap gap-3">
+                          <div className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/75">
+                            Rate: {formatMoney(item.tutor.hourlyRate)}/hr
+                          </div>
+
+                          <div className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/75">
+                            Billed: {formatMoney(item.accumulatedTotal)}
+                          </div>
+
+                          <div className="rounded-xl bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300">
+                            Paid: {formatMoney(amountPaid)}
+                          </div>
+
+                          <div className="rounded-xl bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-300">
+                            Remaining: {formatMoney(remaining)}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </SectionCard>
@@ -279,6 +378,7 @@ export default function StudentDashboardClient({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">Total sessions</p>
+
                   <p className="mt-2 text-3xl font-bold text-white">
                     {stats.totalSessions}
                   </p>
@@ -286,6 +386,7 @@ export default function StudentDashboardClient({
 
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">Learning hours</p>
+
                   <p className="mt-2 text-3xl font-bold text-white">
                     {totalHours.toFixed(1)}
                   </p>
@@ -294,6 +395,7 @@ export default function StudentDashboardClient({
 
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="text-sm text-white/55">Average session cost</p>
+
                 <p className="mt-2 text-3xl font-bold text-white">
                   {formatMoney(averageSessionCost)}
                 </p>
@@ -308,55 +410,6 @@ export default function StudentDashboardClient({
             subtitle="View your confirmed scheduled lessons by date."
           >
             <StudentScheduleView sessions={allSessions} />
-          </SectionCard>
-        </div>
-
-        <div className="mt-8">
-          <SectionCard
-            title="Confirmed sessions"
-            subtitle="Your upcoming and recent tutoring sessions. You can cancel a session from here."
-          >
-            <div className="space-y-3">
-              {recentSessions.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
-                  No confirmed sessions yet.
-                </div>
-              ) : (
-                recentSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-4"
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <p className="font-semibold text-white">
-                          {session.tutorName}
-                        </p>
-                        <p className="mt-1 text-sm text-white/60">
-                          {formatDate(session.lessonDate)} ·{" "}
-                          {session.startTime} - {session.endTime}
-                        </p>
-                        <p className="mt-2 text-sm text-emerald-300">
-                          {formatMoney(session.amount)}
-                        </p>
-                        {session.notes && (
-                          <p className="mt-2 text-sm text-white/55">
-                            {session.notes}
-                          </p>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() => cancelSession(session.id)}
-                        className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-500/20"
-                      >
-                        Cancel session
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
           </SectionCard>
         </div>
       </div>

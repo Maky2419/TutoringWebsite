@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../lib/auth";
-import { prisma } from "../../../lib/prisma";
-import StudentDashboardClient from "../../../components/StudentDashboardClient";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import StudentDashboardClient from "@/components/StudentDashboardClient";
 
 export default async function StudentDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ export default async function StudentDashboardPage() {
   const userId = (session.user as any).id;
   const userEmail = session.user.email || "";
 
-  const [rawAssignments, rawBookings] = await Promise.all([
+  const [rawAssignments, rawBookings, rawPayments] = await Promise.all([
     prisma.studentTutorAssignment.findMany({
       where: {
         OR: [{ studentId: userId }, { student: { email: userEmail } }],
@@ -37,6 +37,14 @@ export default async function StudentDashboardPage() {
       },
       orderBy: { createdAt: "desc" },
     }),
+
+    prisma.tutorPaymentConfirmation.findMany({
+      where: {
+        studentId: userId,
+        confirmed: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   const assignments = rawAssignments.map((assignment) => {
@@ -44,18 +52,34 @@ export default async function StudentDashboardPage() {
       (s) => s.status !== "cancelled"
     );
 
+    const totalBilled = activeSessions.reduce(
+      (sum, s) => sum + Number(s.amount),
+      0
+    );
+
+    const totalPaidForTutor = rawPayments
+      .filter((payment) => payment.tutorId === assignment.tutorId)
+      .reduce((sum, payment) => sum + Number(payment.amountPaid || 0), 0);
+
     return {
       id: assignment.id,
-      accumulatedTotal: activeSessions.reduce(
-        (sum, s) => sum + Number(s.amount),
-        0
-      ),
+      accumulatedTotal: totalBilled,
+      amountPaid: totalPaidForTutor,
+      remainingBalance: Math.max(totalBilled - totalPaidForTutor, 0),
+
       tutor: {
         id: assignment.tutor.id,
         name: assignment.tutor.name,
         email: assignment.tutor.email,
         hourlyRate: assignment.tutor.hourlyRate,
       },
+
+      student: {
+        id: assignment.student?.id,
+        name: assignment.student?.name,
+        email: assignment.student?.email,
+      },
+
       sessions: activeSessions.map((s) => ({
         id: s.id,
         lessonDate: s.lessonDate.toISOString(),
@@ -86,10 +110,14 @@ export default async function StudentDashboardPage() {
   const allSessions = assignments.flatMap((assignment) =>
     assignment.sessions.map((s) => ({
       ...s,
+      studentName: assignment.student?.name || session.user.name || "Student",
+      studentEmail: assignment.student?.email || session.user.email || "",
       tutorName: assignment.tutor.name,
       tutorEmail: assignment.tutor.email,
       tutorRate: assignment.tutor.hourlyRate,
       assignmentTotal: assignment.accumulatedTotal,
+      assignmentPaid: assignment.amountPaid,
+      assignmentRemaining: assignment.remainingBalance,
     }))
   );
 
@@ -109,6 +137,13 @@ export default async function StudentDashboardPage() {
     0
   );
 
+  const totalConfirmedPaid = assignments.reduce(
+    (sum, assignment) => sum + Number(assignment.amountPaid || 0),
+    0
+  );
+
+  const remainingBalance = Math.max(totalSpent - totalConfirmedPaid, 0);
+
   const bookingStats = {
     pending: bookings.filter((b) => b.status.toLowerCase() === "pending")
       .length,
@@ -127,6 +162,8 @@ export default async function StudentDashboardPage() {
       nextSession={nextSession}
       stats={{
         totalSpent,
+        totalConfirmedPaid,
+        remainingBalance,
         totalSessions: allSessions.length,
         upcomingCount: upcomingSessions.length,
         completedSessions: allSessions.filter(

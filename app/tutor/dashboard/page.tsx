@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../lib/auth";
-import { prisma } from "../../../lib/prisma";
-import TutorDashboardClient from "../../../components/TutorDashboardClient";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import TutorDashboardClient from "@/components/TutorDashboardClient";
 
 export default async function TutorDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -29,6 +29,13 @@ export default async function TutorDashboardPage() {
       bookings: {
         orderBy: { createdAt: "desc" },
       },
+      paymentConfirmations: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          student: true,
+          teachingSession: true,
+        },
+      },
     },
   });
 
@@ -42,26 +49,67 @@ export default async function TutorDashboardPage() {
     );
   }
 
-  const assignedStudents = tutor.assignedStudents.map((assignment) => ({
-    id: assignment.id,
-    studentId: assignment.studentId,
-    accumulatedTotal: Number(assignment.accumulatedTotal),
-    student: {
-      id: assignment.student.id,
-      name: assignment.student.name,
-      email: assignment.student.email,
-    },
-    sessions: assignment.sessions.map((s) => ({
-      id: s.id,
-      lessonDate: s.lessonDate.toISOString(),
-      startTime: s.startTime,
-      endTime: s.endTime,
-      notes: s.notes,
-      durationHours: Number(s.durationHours),
-      amount: Number(s.amount),
-      status: s.status,
-    })),
+  const paymentConfirmations = tutor.paymentConfirmations.map((p) => ({
+    id: p.id,
+    studentId: p.studentId,
+    studentName: p.student.name || "Student",
+    studentEmail: p.student.email || "",
+    teachingSessionId: p.teachingSessionId,
+    amountPaid: Number(p.amountPaid),
+    confirmed: p.confirmed,
+    note: p.note,
+    createdAt: p.createdAt.toISOString(),
   }));
+
+  const assignedStudents = tutor.assignedStudents.map((assignment) => {
+    const studentPayments = paymentConfirmations.filter(
+      (payment) => payment.studentId === assignment.studentId
+    );
+
+    const studentTotalPaid = studentPayments.reduce(
+      (sum, payment) => sum + Number(payment.amountPaid || 0),
+      0
+    );
+
+    return {
+      id: assignment.id,
+      studentId: assignment.studentId,
+      accumulatedTotal: Number(assignment.accumulatedTotal),
+      amountPaid: studentTotalPaid,
+      amountRemaining: Math.max(
+        Number(assignment.accumulatedTotal) - studentTotalPaid,
+        0
+      ),
+      student: {
+        id: assignment.student.id,
+        name: assignment.student.name,
+        email: assignment.student.email,
+      },
+      sessions: assignment.sessions.map((s) => {
+        const sessionPayments = paymentConfirmations.filter(
+          (payment) => payment.teachingSessionId === s.id
+        );
+
+        const sessionAmountPaid = sessionPayments.reduce(
+          (sum, payment) => sum + Number(payment.amountPaid || 0),
+          0
+        );
+
+        return {
+          id: s.id,
+          lessonDate: s.lessonDate.toISOString(),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          notes: s.notes,
+          durationHours: Number(s.durationHours),
+          amount: Number(s.amount),
+          status: s.status,
+          amountPaid: sessionAmountPaid,
+          paymentConfirmed: sessionAmountPaid >= Number(s.amount),
+        };
+      }),
+    };
+  });
 
   const bookings = tutor.bookings.map((b) => ({
     id: b.id,
@@ -76,6 +124,7 @@ export default async function TutorDashboardPage() {
   const allSessions = assignedStudents.flatMap((assignment) =>
     assignment.sessions.map((s) => ({
       ...s,
+      studentId: assignment.student.id,
       studentName: assignment.student.name,
       studentEmail: assignment.student.email,
     }))
@@ -98,10 +147,17 @@ export default async function TutorDashboardPage() {
     (s) => new Date(s.lessonDate).toISOString().split("T")[0] === todayStr
   ).length;
 
-  const totalEarnings = assignedStudents.reduce(
-    (sum, assignment) => sum + Number(assignment.accumulatedTotal),
+  const totalEarnings = activeSessions.reduce(
+    (sum, session) => sum + Number(session.amount || 0),
     0
   );
+
+  const totalConfirmedPaid = paymentConfirmations.reduce(
+    (sum, payment) => sum + Number(payment.amountPaid || 0),
+    0
+  );
+
+  const pendingPaymentAmount = Math.max(totalEarnings - totalConfirmedPaid, 0);
 
   const pendingBookings = bookings.filter(
     (booking) => booking.status.toLowerCase() === "pending"
@@ -122,9 +178,12 @@ export default async function TutorDashboardPage() {
       allSessions={allSessions}
       upcomingSessions={upcomingSessions}
       calendarSessions={allSessions}
+      paymentConfirmations={paymentConfirmations}
       stats={{
         todaysSessions,
         totalEarnings,
+        totalConfirmedPaid,
+        pendingPaymentAmount,
         totalStudents: assignedStudents.length,
         totalSessions: activeSessions.length,
         pendingBookings,

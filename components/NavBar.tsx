@@ -42,12 +42,6 @@ export default async function NavBar() {
             Become a Tutor
           </Link>
           <Link
-            href="/pricing"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
-          >
-            Pricing
-          </Link>
-          <Link
             href="/services"
             className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
           >

@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import TutorScheduleManager from "./TutorScheduleManager";
 import TutorCalendar from "./TutorCalendar";
 
@@ -48,6 +49,7 @@ type TutorInfo = {
 };
 
 type SessionRow = SessionBase & {
+  studentId?: string;
   studentName: string | null;
   studentEmail: string | null;
 };
@@ -60,9 +62,22 @@ type Props = {
   allSessions: SessionRow[];
   upcomingSessions: SessionRow[];
   calendarSessions: SessionRow[];
+  paymentConfirmations?: {
+    id: number;
+    studentId: string;
+    studentName: string;
+    studentEmail: string;
+    teachingSessionId: number | null;
+    amountPaid: number;
+    confirmed: boolean;
+    note: string | null;
+    createdAt: string;
+  }[];
   stats: {
     todaysSessions: number;
     totalEarnings: number;
+    totalConfirmedPaid?: number;
+    pendingPaymentAmount?: number;
     totalStudents: number;
     totalSessions: number;
     pendingBookings: number;
@@ -70,7 +85,7 @@ type Props = {
 };
 
 function formatMoney(value: number | string) {
-  return `$${Number(value || 0).toFixed(2)}`;
+  return `AED ${Number(value || 0).toFixed(2)}`;
 }
 
 function formatDate(dateValue: Date | string) {
@@ -142,8 +157,53 @@ export default function TutorDashboardClient({
   allSessions,
   upcomingSessions,
   calendarSessions,
+  paymentConfirmations = [],
   stats,
 }: Props) {
+  const router = useRouter();
+
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState("");
+  const [amountPaid, setAmountPaid] = useState("");
+  const [paymentNote, setPaymentNote] = useState("");
+
+  async function confirmManualPayment() {
+    if (!selectedStudentId || !amountPaid) {
+      alert("Please select a student and enter the amount paid.");
+      return;
+    }
+
+    const res = await fetch("/api/tutor/payment-confirmation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tutorId: tutor.id,
+        studentId: selectedStudentId,
+        teachingSessionId: selectedSessionId || null,
+        amountPaid: Number(amountPaid),
+        note: paymentNote,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Failed to confirm payment.");
+      return;
+    }
+
+    alert("Payment confirmation saved.");
+
+    setSelectedStudentId("");
+    setSelectedSessionId("");
+    setAmountPaid("");
+    setPaymentNote("");
+
+    router.refresh();
+  }
+
   const recentBookings = bookings.slice(0, 5);
 
   const topStudents = [...assignedStudents]
@@ -200,7 +260,7 @@ export default function TutorDashboardClient({
               </p>
               <p className="text-sm text-white/70">{tutor.email}</p>
               <p className="mt-2 text-sm text-emerald-300">
-                ${tutor.hourlyRate}/hr · {tutor.category}
+                {formatMoney(tutor.hourlyRate)}/hr · {tutor.category}
               </p>
             </div>
           </div>
@@ -228,15 +288,114 @@ export default function TutorDashboardClient({
             subtext="Sessions cancelled by students"
           />
           <StatCard
-            title="Pending Bookings"
-            value={String(stats.pendingBookings)}
-            subtext="Booking requests waiting"
+            title="Confirmed Paid"
+            value={formatMoney(stats.totalConfirmedPaid || 0)}
+            subtext="Manual bank transfers confirmed"
           />
           <StatCard
             title="Total Earnings"
             value={formatMoney(stats.totalEarnings)}
             subtext="Running revenue"
           />
+        </div>
+
+        <div className="mt-8">
+          <SectionCard
+            title="Manual payment confirmation"
+            subtitle="Record how much a student has paid you by bank transfer."
+          >
+            <div className="grid gap-4">
+              <div>
+                <label className="mb-2 block text-sm text-white/60">
+                  Select student
+                </label>
+
+                <select
+                  value={selectedStudentId}
+                  onChange={(e) => {
+                    setSelectedStudentId(e.target.value);
+                    setSelectedSessionId("");
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white"
+                >
+                  <option value="">Choose a student</option>
+
+                  {assignedStudents.map((assignment) => (
+                    <option
+                      key={assignment.student.id}
+                      value={assignment.student.id}
+                    >
+                      {assignment.student.name ||
+                        assignment.student.email ||
+                        "Student"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-white/60">
+                  Optional: link to session
+                </label>
+
+                <select
+                  value={selectedSessionId}
+                  onChange={(e) => setSelectedSessionId(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white"
+                >
+                  <option value="">No specific session</option>
+
+                  {allSessions
+                    .filter(
+                      (session) =>
+                        !selectedStudentId ||
+                        session.studentId === selectedStudentId
+                    )
+                    .map((session) => (
+                      <option key={session.id} value={session.id}>
+                        {session.studentName || "Student"} —{" "}
+                        {formatDate(session.lessonDate)} —{" "}
+                        {formatMoney(session.amount)}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-white/60">
+                  Amount paid
+                </label>
+
+                <input
+                  type="number"
+                  value={amountPaid}
+                  onChange={(e) => setAmountPaid(e.target.value)}
+                  placeholder="Example: 200"
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white placeholder:text-white/35"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-white/60">
+                  Note
+                </label>
+
+                <textarea
+                  value={paymentNote}
+                  onChange={(e) => setPaymentNote(e.target.value)}
+                  placeholder="Example: Paid by bank transfer on May 15"
+                  className="min-h-[100px] w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white placeholder:text-white/35"
+                />
+              </div>
+
+              <button
+                onClick={confirmManualPayment}
+                className="rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white hover:bg-emerald-700"
+              >
+                Confirm Payment Received
+              </button>
+            </div>
+          </SectionCard>
         </div>
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.3fr_1fr]">
@@ -392,10 +551,8 @@ export default function TutorDashboardClient({
                   </p>
                   <p className="mt-2 text-3xl font-bold text-white">
                     {assignedStudents.length > 0
-                      ? formatMoney(
-                          stats.totalEarnings / assignedStudents.length
-                        )
-                      : "$0.00"}
+                      ? formatMoney(stats.totalEarnings / assignedStudents.length)
+                      : formatMoney(0)}
                   </p>
                 </div>
 
@@ -406,16 +563,70 @@ export default function TutorDashboardClient({
                   <p className="mt-2 text-3xl font-bold text-white">
                     {stats.totalSessions > 0
                       ? formatMoney(stats.totalEarnings / stats.totalSessions)
-                      : "$0.00"}
+                      : formatMoney(0)}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm text-white/55">Hourly rate</p>
                   <p className="mt-2 text-3xl font-bold text-emerald-300">
-                    ${tutor.hourlyRate}
+                    {formatMoney(tutor.hourlyRate)}
                   </p>
                 </div>
+
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <p className="text-sm text-white/55">
+                    Pending unconfirmed payment
+                  </p>
+                  <p className="mt-2 text-3xl font-bold text-amber-300">
+                    {formatMoney(stats.pendingPaymentAmount || 0)}
+                  </p>
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Recent payment confirmations"
+              subtitle="Manual bank-transfer payments recorded by you."
+            >
+              <div className="space-y-4">
+                {paymentConfirmations.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
+                    No payment confirmations recorded yet.
+                  </div>
+                ) : (
+                  paymentConfirmations.slice(0, 5).map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="rounded-2xl border border-white/10 bg-black/20 p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-white">
+                            {payment.studentName}
+                          </p>
+                          <p className="text-sm text-white/60">
+                            {payment.studentEmail}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-300">
+                          {formatMoney(payment.amountPaid)}
+                        </div>
+                      </div>
+
+                      <p className="mt-2 text-sm text-white/55">
+                        {formatDate(payment.createdAt)}
+                      </p>
+
+                      {payment.note && (
+                        <p className="mt-2 text-sm text-white/55">
+                          {payment.note}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </SectionCard>
           </div>
