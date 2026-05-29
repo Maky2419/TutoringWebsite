@@ -119,7 +119,7 @@ export default function BookPage() {
 
                   {tutors.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.name} — {t.subjects} — AED {t.hourlyRate}/hr
+                      {t.name} — {t.subjects} — ${t.hourlyRate}/hr USD
                     </option>
                   ))}
                 </select>
@@ -136,7 +136,7 @@ export default function BookPage() {
                       {selectedTutor.bio}
                     </p>
                     <p className="mt-3 text-sm font-bold text-green-700">
-                      AED {selectedTutor.hourlyRate}/hr
+                      ${selectedTutor.hourlyRate}/hr USD
                     </p>
                   </div>
                 )}

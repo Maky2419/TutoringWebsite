@@ -173,7 +173,7 @@ export function generateInvoice({
 
     doc.setFont("helvetica", "bold");
     doc.text(
-      `AED ${Number(session.amount || 0).toFixed(2)}`,
+      `$${Number(session.amount || 0).toFixed(2)} USD`,
       pageWidth - margin - 4,
       y,
       { align: "right" }
@@ -194,18 +194,18 @@ export function generateInvoice({
   doc.setFont("helvetica", "bold");
 
   doc.text("SUBTOTAL", pageWidth - margin - 76, y + 9);
-  doc.text(`AED ${subtotal.toFixed(2)}`, pageWidth - margin - 6, y + 9, {
+  doc.text(`$${subtotal.toFixed(2)} USD`, pageWidth - margin - 6, y + 9, {
     align: "right",
   });
 
   doc.text("PAID", pageWidth - margin - 76, y + 19);
-  doc.text(`AED ${amountPaid.toFixed(2)}`, pageWidth - margin - 6, y + 19, {
+  doc.text(`$${amountPaid.toFixed(2)} USD`, pageWidth - margin - 6, y + 19, {
     align: "right",
   });
 
   doc.setFontSize(11);
   doc.text("BALANCE DUE", pageWidth - margin - 76, y + 31);
-  doc.text(`AED ${balanceDue.toFixed(2)}`, pageWidth - margin - 6, y + 31, {
+  doc.text(`$${balanceDue.toFixed(2)} USD`, pageWidth - margin - 6, y + 31, {
     align: "right",
   });
 

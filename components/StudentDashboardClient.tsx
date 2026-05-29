@@ -80,7 +80,7 @@ type Props = {
 };
 
 function formatMoney(value: number | string) {
-  return `AED ${Number(value || 0).toFixed(2)}`;
+  return `$${Number(value || 0).toFixed(2)} USD`;
 }
 
 function formatDate(dateValue: Date | string) {

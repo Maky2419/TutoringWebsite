@@ -36,7 +36,7 @@ type AssignmentResponse = {
 };
 
 function money(value: string | number) {
-  return `AED ${Number(value || 0).toFixed(2)}`;
+  return `$${Number(value || 0).toFixed(2)} USD`;
 }
 
 function prettyDate(value: string) {
@@ -260,7 +260,7 @@ export default function TutorScheduleManager() {
             <p className="text-2xl font-black text-green-700">
               {scheduleData
                 ? money(scheduleData.assignment.accumulatedTotal)
-                : "AED 0.00"}
+                : "$0.00 USD"}
             </p>
           </div>
 

@@ -13,7 +13,7 @@ type StudentSession = {
 };
 
 function formatMoney(value: number | string) {
-  return `AED ${Number(value || 0).toFixed(2)}`;
+  return `$${Number(value || 0).toFixed(2)} USD`;
 }
 
 export default function StudentScheduleView({

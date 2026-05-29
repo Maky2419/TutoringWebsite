@@ -1,11 +1,6 @@
 {
-  "/api/tutor/students/route": "app/api/tutor/students/route.js",
   "/page": "app/page.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/book/page": "app/book/page.js",
   "/tutors/page": "app/tutors/page.js",
-  "/api/tutors/route": "app/api/tutors/route.js",
-  "/apply/page": "app/apply/page.js",
-  "/services/page": "app/services/page.js",
-  "/book/page": "app/book/page.js"
+  "/api/tutors/route": "app/api/tutors/route.js"
 }
