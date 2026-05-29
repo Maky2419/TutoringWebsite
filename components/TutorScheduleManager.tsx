@@ -51,6 +51,29 @@ function inputDate(value: string) {
   return new Date(value).toISOString().split("T")[0];
 }
 
+function addOneHour(time: string) {
+  if (!time) return "";
+
+  const [hourString, minuteString] = time.split(":");
+  const hour = Number(hourString);
+  const nextHour = (hour + 1) % 24;
+
+  return `${String(nextHour).padStart(2, "0")}:${minuteString}`;
+}
+
+function addDays(dateString: string, days: number) {
+  const [year, month, day] = dateString.split("-").map(Number);
+
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + days);
+
+  const newYear = date.getFullYear();
+  const newMonth = String(date.getMonth() + 1).padStart(2, "0");
+  const newDay = String(date.getDate()).padStart(2, "0");
+
+  return `${newYear}-${newMonth}-${newDay}`;
+}
+
 export default function TutorScheduleManager() {
   const [students, setStudents] = useState<Student[]>([]);
   const [assigned, setAssigned] = useState<AssignedStudent[]>([]);
@@ -60,6 +83,7 @@ export default function TutorScheduleManager() {
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [repeatFourWeeks, setRepeatFourWeeks] = useState(false);
 
   const [form, setForm] = useState({
     sessionId: "",
@@ -141,14 +165,25 @@ export default function TutorScheduleManager() {
   }
 
   async function saveSession(e: FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!selectedStudentId) return;
+  if (!selectedStudentId) return;
 
-    setSaving(true);
+  setSaving(true);
 
-    const isEditing = Boolean(form.sessionId);
+  const isEditing = Boolean(form.sessionId);
 
+  const lessonDates =
+    repeatFourWeeks && !isEditing
+      ? [
+          form.lessonDate,
+          addDays(form.lessonDate, 7),
+          addDays(form.lessonDate, 14),
+          addDays(form.lessonDate, 21),
+        ]
+      : [form.lessonDate];
+
+  for (const lessonDate of lessonDates) {
     await fetch("/api/tutor/sessions", {
       method: isEditing ? "PUT" : "POST",
       headers: {
@@ -156,28 +191,33 @@ export default function TutorScheduleManager() {
       },
       body: JSON.stringify({
         studentId: selectedStudentId,
-        sessionId: form.sessionId ? Number(form.sessionId) : undefined,
-        lessonDate: form.lessonDate,
+        sessionId: isEditing ? Number(form.sessionId) : undefined,
+        lessonDate,
         startTime: form.startTime,
         endTime: form.endTime,
         notes: form.notes,
       }),
     });
-
-    setForm({
-      sessionId: "",
-      lessonDate: "",
-      startTime: "",
-      endTime: "",
-      notes: "",
-    });
-
-    await loadSchedule(selectedStudentId);
-    setSaving(false);
   }
+
+  setForm({
+    sessionId: "",
+    lessonDate: "",
+    startTime: "",
+    endTime: "",
+    notes: "",
+  });
+
+  setRepeatFourWeeks(false);
+
+  await loadSchedule(selectedStudentId);
+  setSaving(false);
+}
 
   function editSession(session: TeachingSession) {
     if (session.status === "cancelled") return;
+
+    setRepeatFourWeeks(false);
 
     setForm({
       sessionId: String(session.id),
@@ -333,26 +373,62 @@ export default function TutorScheduleManager() {
                 />
 
                 <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="time"
-                    value={form.startTime}
-                    onChange={(e) =>
-                      setForm({ ...form, startTime: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                    required
-                  />
+                  <div>
+                    <p className="mb-1 text-xs font-bold text-slate-500">
+                      Start
+                    </p>
+                    <input
+                      type="time"
+                      step="900"
+                      value={form.startTime}
+                      onChange={(e) => {
+                        const startTime = e.target.value;
 
-                  <input
-                    type="time"
-                    value={form.endTime}
-                    onChange={(e) =>
-                      setForm({ ...form, endTime: e.target.value })
-                    }
-                    className="w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                    required
-                  />
+                        setForm({
+                          ...form,
+                          startTime,
+                          endTime: addOneHour(startTime),
+                        });
+                      }}
+                      className="w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <p className="mb-1 text-xs font-bold text-slate-500">End</p>
+                    <input
+                      type="time"
+                      step="900"
+                      value={form.endTime}
+                      onChange={(e) =>
+                        setForm({ ...form, endTime: e.target.value })
+                      }
+                      className="w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                      required
+                    />
+                  </div>
                 </div>
+
+                {!form.sessionId && (
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={repeatFourWeeks}
+                        onChange={(e) => setRepeatFourWeeks(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-blue-300 text-blue-600"
+                      />
+
+                      <div>
+                        <p className="text-sm font-bold text-slate-950">
+                          Repeat weekly for 4 weeks
+                        </p>
+                  
+                      </div>
+                    </label>
+                  </div>
+                )}
 
                 <textarea
                   value={form.notes}
@@ -365,10 +441,22 @@ export default function TutorScheduleManager() {
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    disabled={!selectedStudentId || saving}
+                    disabled={
+                      !selectedStudentId ||
+                      saving ||
+                      !form.lessonDate ||
+                      !form.startTime ||
+                      !form.endTime
+                    }
                     className="flex-1 rounded-xl bg-green-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {saving ? "Saving..." : form.sessionId ? "Save" : "Add"}
+                    {saving
+                      ? "Saving..."
+                      : form.sessionId
+                      ? "Save"
+                      : repeatFourWeeks
+                      ? "Add 4 Lessons"
+                      : "Add"}
                   </button>
 
                   {form.sessionId && (
