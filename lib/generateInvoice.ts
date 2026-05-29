@@ -209,24 +209,74 @@ export function generateInvoice({
     align: "right",
   });
 
-  y += 56;
+  // PAGE 2: BANK TRANSFER DETAILS
+  doc.addPage();
+
+  doc.setFillColor(35, 37, 84);
+  doc.rect(0, 0, pageWidth, 42, "F");
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.text("Bank Transfer Details", margin, 22);
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text("Please use the details below to complete payment.", margin, 32);
+
+  y = 60;
 
   doc.setTextColor(35, 37, 84);
-  doc.setFontSize(13);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text("Bank Transfer Details", margin, y);
+  doc.text("Payment Instructions", margin, y);
 
-  y += 10;
+  y += 12;
 
   doc.setFillColor(245, 247, 252);
-  doc.roundedRect(margin, y, pageWidth - margin * 2, 35, 4, 4, "F");
+  doc.roundedRect(margin, y, pageWidth - margin * 2, 82, 4, 4, "F");
 
   doc.setTextColor(50, 50, 50);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("Bank Name: YOUR BANK NAME", margin + 6, y + 10);
-  doc.text("Account Name: K-Cubed Tutoring", margin + 6, y + 20);
-  doc.text("IBAN: YOUR IBAN HERE", margin + 6, y + 30);
+
+  doc.text("Bank Name: Example Bank", margin + 8, y + 12);
+  doc.text("Account Name: K-Cubed Tutoring", margin + 8, y + 24);
+  doc.text("Account Number: 1234567890", margin + 8, y + 36);
+  doc.text("Routing Number: 021000021", margin + 8, y + 48);
+  doc.text("SWIFT/BIC: EXAMPUS3M", margin + 8, y + 60);
+  doc.text("Reference: Please include the student name or invoice name", margin + 8, y + 72);
+
+  y += 100;
+
+  doc.setTextColor(35, 37, 84);
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.text("Amount to Transfer", margin, y);
+
+  y += 12;
+
+  doc.setFillColor(235, 248, 243);
+  doc.roundedRect(margin, y, pageWidth - margin * 2, 30, 4, 4, "F");
+
+  doc.setTextColor(40, 120, 85);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Balance Due: $${balanceDue.toFixed(2)} USD`, margin + 8, y + 19);
+
+  y += 50;
+
+  doc.setTextColor(120, 120, 120);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    "This is placeholder bank transfer information. Replace it with your real bank details before sending invoices to clients.",
+    margin,
+    y,
+    {
+      maxWidth: pageWidth - margin * 2,
+    }
+  );
 
   doc.setDrawColor(220, 220, 220);
   doc.line(margin, 280, pageWidth - margin, 280);

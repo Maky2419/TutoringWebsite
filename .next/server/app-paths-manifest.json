@@ -1,8 +1,12 @@
 {
   "/book/page": "app/book/page.js",
+  "/login/page": "app/login/page.js",
   "/student/dashboard/page": "app/student/dashboard/page.js",
-  "/tutors/page": "app/tutors/page.js",
-  "/api/tutors/route": "app/api/tutors/route.js",
+  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/services/page": "app/services/page.js",
-  "/login/page": "app/login/page.js"
+  "/page": "app/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/tutor/account/page": "app/tutor/account/page.js",
+  "/api/tutor/students/route": "app/api/tutor/students/route.js"
 }
