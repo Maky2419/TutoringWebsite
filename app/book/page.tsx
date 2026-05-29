@@ -8,10 +8,20 @@ type Tutor = {
   id: number;
   name: string;
   email: string;
-  subjects: string;
+  subjects: string | string[];
   bio: string;
   hourlyRate: number;
 };
+
+function formatSubjects(subjects: string | string[]) {
+  if (Array.isArray(subjects)) {
+    return subjects.filter(Boolean).join(", ");
+  }
+
+  return String(subjects || "")
+    .replace(/([a-z])([A-Z])/g, "$1, $2")
+    .trim();
+}
 
 export default function BookPage() {
   const [status, setStatus] = useState<
@@ -119,7 +129,8 @@ export default function BookPage() {
 
                   {tutors.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.name} — {t.subjects} — ${t.hourlyRate}/hr USD
+                      {t.name} — {formatSubjects(t.subjects)} — $
+                      {t.hourlyRate}/hr USD
                     </option>
                   ))}
                 </select>
@@ -130,7 +141,7 @@ export default function BookPage() {
                       {selectedTutor.name}
                     </p>
                     <p className="mt-1 text-sm font-semibold text-blue-700">
-                      {selectedTutor.subjects}
+                      {formatSubjects(selectedTutor.subjects)}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">
                       {selectedTutor.bio}
@@ -255,4 +266,4 @@ export default function BookPage() {
       </Container>
     </main>
   );
-}
+} 

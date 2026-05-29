@@ -1,4 +1,8 @@
 {
+  "/book/page": "app/book/page.js",
+  "/student/dashboard/page": "app/student/dashboard/page.js",
   "/tutors/page": "app/tutors/page.js",
-  "/api/tutors/route": "app/api/tutors/route.js"
+  "/api/tutors/route": "app/api/tutors/route.js",
+  "/services/page": "app/services/page.js",
+  "/login/page": "app/login/page.js"
 }
