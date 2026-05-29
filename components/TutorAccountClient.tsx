@@ -37,10 +37,10 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/10">
+    <section className="rounded-[28px] border border-blue-100 bg-white p-6 shadow-sm">
       <div className="mb-5">
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-white/55">{subtitle}</p>}
+        <h2 className="text-xl font-extrabold text-slate-950">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
       </div>
       {children}
     </section>
@@ -59,21 +59,32 @@ export default function TutorAccountClient({
   const [student, setStudent] = useState("");
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [reviewState, setReviewState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [reviewState, setReviewState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const [saveMessage, setSaveMessage] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
 
   const averageRating = useMemo(() => {
     if (reviews.length === 0) return 0;
-    return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+    return (
+      reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    );
   }, [reviews]);
 
   function addSubject() {
     const value = subjectInput.trim();
 
     if (!value) return;
-    if (subjects.some((subject) => subject.toLowerCase() === value.toLowerCase())) {
+
+    if (
+      subjects.some(
+        (subject) => subject.toLowerCase() === value.toLowerCase()
+      )
+    ) {
       setSubjectInput("");
       return;
     }
@@ -83,7 +94,9 @@ export default function TutorAccountClient({
   }
 
   function removeSubject(subjectToRemove: string) {
-    setSubjects((current) => current.filter((subject) => subject !== subjectToRemove));
+    setSubjects((current) =>
+      current.filter((subject) => subject !== subjectToRemove)
+    );
   }
 
   async function handleSaveProfile(e: React.FormEvent<HTMLFormElement>) {
@@ -152,6 +165,7 @@ export default function TutorAccountClient({
         },
         ...current,
       ]);
+
       setStudent("");
       setRating("5");
       setComment("");
@@ -159,37 +173,45 @@ export default function TutorAccountClient({
       setReviewMessage("Review added successfully.");
     } catch (error: any) {
       setReviewState("error");
-      setReviewMessage(error?.message || "Something went wrong while adding the review.");
+      setReviewMessage(
+        error?.message || "Something went wrong while adding the review."
+      );
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#07111f]">
+    <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-indigo-500/20 via-violet-500/10 to-emerald-500/10 p-8 shadow-2xl shadow-black/20">
+        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-violet-200/80">
-                Tutor account
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
+                Tutor Account
               </p>
-              <h1 className="mt-3 text-4xl font-bold text-white">Manage your public profile</h1>
-              <p className="mt-3 max-w-2xl text-white/65">
-                Update the information students see on your tutor profile and add social proof with reviews.
+
+              <h1 className="mt-3 text-4xl font-extrabold text-slate-950">
+                Manage your public profile
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-slate-600">
+                Update the information students see on your tutor profile and
+                add social proof with reviews.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/tutor/dashboard"
-                className="inline-flex rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-50"
               >
-                Back to dashboard
+                Back to Dashboard
               </Link>
+
               <Link
                 href="/tutors"
-                className="inline-flex rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+                className="inline-flex rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
               >
-                View tutors page
+                View Tutors Page
               </Link>
             </div>
           </div>
@@ -197,31 +219,39 @@ export default function TutorAccountClient({
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
           <SectionCard
-            title="Profile details"
+            title="Profile Details"
             subtitle="Edit your subjects, education, and bio from one place."
           >
             <form className="space-y-6" onSubmit={handleSaveProfile}>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">Name</label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Name
+                  </label>
                   <input
                     value={initialProfile.name}
                     disabled
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white/60 outline-none"
+                    className="w-full rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-slate-700 outline-none"
                   />
                 </div>
+
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">Email</label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Email
+                  </label>
                   <input
                     value={initialProfile.email}
                     disabled
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white/60 outline-none"
+                    className="w-full rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-slate-700 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/80">Subjects</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Subjects
+                </label>
+
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input
                     value={subjectInput}
@@ -233,20 +263,21 @@ export default function TutorAccountClient({
                       }
                     }}
                     placeholder="Add a subject like Calculus or Chemistry"
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-white/35"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
+
                   <button
                     type="button"
                     onClick={addSubject}
-                    className="rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400"
+                    className="rounded-2xl bg-green-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-green-600"
                   >
-                    Add subject
+                    Add Subject
                   </button>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-3">
                   {subjects.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 px-4 py-3 text-sm text-white/55">
+                    <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 px-4 py-3 text-sm text-slate-600">
                       No subjects added yet.
                     </div>
                   ) : (
@@ -255,7 +286,7 @@ export default function TutorAccountClient({
                         key={subject}
                         type="button"
                         onClick={() => removeSubject(subject)}
-                        className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/15"
+                        className="rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
                       >
                         {subject} ×
                       </button>
@@ -265,24 +296,30 @@ export default function TutorAccountClient({
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/80">Education</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Education
+                </label>
+
                 <textarea
                   value={education}
                   onChange={(e) => setEducation(e.target.value)}
                   rows={4}
                   placeholder="Add your degree, certifications, and relevant academic background"
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-white/35"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-white/80">Bio</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Bio
+                </label>
+
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={7}
                   placeholder="Describe your teaching style, experience, and how you support students"
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-white/35"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 
@@ -290,14 +327,15 @@ export default function TutorAccountClient({
                 <button
                   type="submit"
                   disabled={saveState === "saving"}
-                  className="rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {saveState === "saving" ? "Saving..." : "Save profile"}
+                  {saveState === "saving" ? "Saving..." : "Save Profile"}
                 </button>
+
                 {saveMessage && (
                   <p
-                    className={`text-sm ${
-                      saveState === "error" ? "text-rose-300" : "text-emerald-300"
+                    className={`text-sm font-semibold ${
+                      saveState === "error" ? "text-red-600" : "text-green-600"
                     }`}
                   >
                     {saveMessage}
@@ -309,54 +347,69 @@ export default function TutorAccountClient({
 
           <div className="space-y-8">
             <SectionCard
-              title="Profile summary"
+              title="Profile Summary"
               subtitle="A quick snapshot of what students will notice first."
             >
               <div className="space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Subjects listed</p>
-                  <p className="mt-2 text-3xl font-bold text-white">{subjects.length}</p>
+                <div className="rounded-2xl border border-blue-100 bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">Subjects listed</p>
+                  <p className="mt-2 text-3xl font-extrabold text-slate-950">
+                    {subjects.length}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Reviews</p>
-                  <p className="mt-2 text-3xl font-bold text-white">{reviews.length}</p>
+
+                <div className="rounded-2xl border border-blue-100 bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">Reviews</p>
+                  <p className="mt-2 text-3xl font-extrabold text-slate-950">
+                    {reviews.length}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Average rating</p>
-                  <p className="mt-2 text-3xl font-bold text-amber-300">
+
+                <div className="rounded-2xl border border-blue-100 bg-yellow-50 p-4">
+                  <p className="text-sm text-slate-600">Average rating</p>
+                  <p className="mt-2 text-3xl font-extrabold text-yellow-600">
                     {reviews.length === 0 ? "New" : averageRating.toFixed(1)}
                   </p>
+
                   {reviews.length > 0 && (
-                    <p className="mt-2 text-sm text-white/65">{stars(averageRating)}</p>
+                    <p className="mt-2 text-sm text-yellow-600">
+                      {stars(averageRating)}
+                    </p>
                   )}
                 </div>
               </div>
             </SectionCard>
 
             <SectionCard
-              title="Add a review"
+              title="Add a Review"
               subtitle="Create a review entry that appears on the public tutor page."
             >
               <form className="space-y-4" onSubmit={handleAddReview}>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">Student name</label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Student name
+                  </label>
+
                   <input
                     value={student}
                     onChange={(e) => setStudent(e.target.value)}
                     placeholder="Enter the student's first name or full name"
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-white/35"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">Rating</label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Rating
+                  </label>
+
                   <select
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   >
                     {[5, 4, 3, 2, 1].map((value) => (
-                      <option key={value} value={value} className="text-black">
+                      <option key={value} value={value}>
                         {value} star{value === 1 ? "" : "s"}
                       </option>
                     ))}
@@ -364,13 +417,16 @@ export default function TutorAccountClient({
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-white/80">Comment</label>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Comment
+                  </label>
+
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={5}
                     placeholder="Write a short testimonial or review comment"
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-white/35"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
 
@@ -378,14 +434,17 @@ export default function TutorAccountClient({
                   <button
                     type="submit"
                     disabled={reviewState === "saving"}
-                    className="rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-2xl bg-green-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {reviewState === "saving" ? "Adding..." : "Add review"}
+                    {reviewState === "saving" ? "Adding..." : "Add Review"}
                   </button>
+
                   {reviewMessage && (
                     <p
-                      className={`text-sm ${
-                        reviewState === "error" ? "text-rose-300" : "text-emerald-300"
+                      className={`text-sm font-semibold ${
+                        reviewState === "error"
+                          ? "text-red-600"
+                          : "text-green-600"
                       }`}
                     >
                       {reviewMessage}
@@ -399,11 +458,11 @@ export default function TutorAccountClient({
 
         <div className="mt-8">
           <SectionCard
-            title="Saved reviews"
+            title="Saved Reviews"
             subtitle="These testimonials will appear on each tutor's public profile page."
           >
             {reviews.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
+              <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 p-6 text-sm text-slate-600">
                 No reviews added yet.
               </div>
             ) : (
@@ -411,18 +470,26 @@ export default function TutorAccountClient({
                 {reviews.map((review) => (
                   <div
                     key={review.id}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-5"
+                    className="rounded-2xl border border-blue-100 bg-slate-50 p-5"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-white">{review.student}</p>
-                        <p className="mt-1 text-sm text-amber-300">{stars(review.rating)}</p>
+                        <p className="font-extrabold text-slate-950">
+                          {review.student}
+                        </p>
+                        <p className="mt-1 text-sm text-yellow-600">
+                          {stars(review.rating)}
+                        </p>
                       </div>
-                      <p className="text-sm text-white/45">
+
+                      <p className="text-sm text-slate-500">
                         {new Date(review.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <p className="mt-4 text-sm leading-6 text-white/75">{review.comment}</p>
+
+                    <p className="mt-4 text-sm leading-6 text-slate-600">
+                      {review.comment}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -430,6 +497,6 @@ export default function TutorAccountClient({
           </SectionCard>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

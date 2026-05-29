@@ -27,8 +27,7 @@ export default function StudentScheduleView({
     .filter((session) => session.status !== "cancelled")
     .sort(
       (a, b) =>
-        new Date(a.lessonDate).getTime() -
-        new Date(b.lessonDate).getTime()
+        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
     );
 
   const year = currentDate.getFullYear();
@@ -62,10 +61,7 @@ export default function StudentScheduleView({
   }
 
   async function cancelSession(sessionId: number) {
-    const confirmed = confirm(
-      "Are you sure you want to cancel this session?"
-    );
-
+    const confirmed = confirm("Are you sure you want to cancel this session?");
     if (!confirmed) return;
 
     const res = await fetch(`/api/student/sessions/${sessionId}`, {
@@ -85,25 +81,24 @@ export default function StudentScheduleView({
   return (
     <div className="space-y-8">
       {/* SESSION CARDS */}
-
       <div className="space-y-3">
         {activeSessions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
+          <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 p-6 text-sm text-slate-600">
             No confirmed sessions yet.
           </div>
         ) : (
           activeSessions.map((session) => (
             <div
               key={session.id}
-              className="rounded-2xl border border-white/10 bg-black/20 p-5"
+              className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm"
             >
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-2xl font-semibold text-white">
+                  <p className="text-2xl font-extrabold text-slate-950">
                     {session.tutorName}
                   </p>
 
-                  <p className="mt-2 text-lg text-white/60">
+                  <p className="mt-2 text-lg text-slate-600">
                     {new Date(session.lessonDate).toLocaleDateString(
                       undefined,
                       {
@@ -116,16 +111,16 @@ export default function StudentScheduleView({
                     · {session.startTime} - {session.endTime}
                   </p>
 
-                  <p className="mt-3 text-3xl font-semibold text-emerald-300">
+                  <p className="mt-3 text-3xl font-extrabold text-green-600">
                     {formatMoney(session.amount)}
                   </p>
                 </div>
 
                 <button
                   onClick={() => cancelSession(session.id)}
-                  className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-5 py-3 text-sm font-semibold text-rose-200 hover:bg-rose-500/20"
+                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-100"
                 >
-                  Cancel session
+                  Cancel Session
                 </button>
               </div>
             </div>
@@ -134,38 +129,31 @@ export default function StudentScheduleView({
       </div>
 
       {/* CALENDAR */}
-
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <div className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
         <div className="mb-6 flex items-center justify-between">
           <button
-            onClick={() =>
-              setCurrentDate(new Date(year, month - 1, 1))
-            }
-            className="rounded-xl border border-white/10 bg-black/20 px-4 py-2 text-sm text-white hover:bg-white/10"
+            onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+            className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
           >
             Previous
           </button>
 
-          <h3 className="text-xl font-bold text-white">
+          <h3 className="text-xl font-extrabold text-slate-950">
             {monthName}
           </h3>
 
           <button
-            onClick={() =>
-              setCurrentDate(new Date(year, month + 1, 1))
-            }
-            className="rounded-xl border border-white/10 bg-black/20 px-4 py-2 text-sm text-white hover:bg-white/10"
+            onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+            className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
           >
             Next
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase text-white/45">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-            (day) => (
-              <div key={day}>{day}</div>
-            )
-          )}
+        <div className="grid grid-cols-7 gap-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <div key={day}>{day}</div>
+          ))}
         </div>
 
         <div className="mt-3 grid grid-cols-7 gap-2">
@@ -175,11 +163,15 @@ export default function StudentScheduleView({
             return (
               <div
                 key={index}
-                className="min-h-28 rounded-2xl border border-white/10 bg-black/20 p-2"
+                className={`min-h-28 rounded-2xl border p-2 ${
+                  day
+                    ? "border-slate-200 bg-slate-50"
+                    : "border-slate-100 bg-white"
+                }`}
               >
                 {day && (
                   <>
-                    <p className="mb-2 text-sm font-semibold text-white">
+                    <p className="mb-2 text-sm font-bold text-slate-700">
                       {day}
                     </p>
 
@@ -187,14 +179,18 @@ export default function StudentScheduleView({
                       {daySessions.map((session) => (
                         <div
                           key={session.id}
-                          className="rounded-lg bg-emerald-500/10 p-2"
+                          className="rounded-lg border border-green-300 bg-green-500 p-2 shadow-sm"
                         >
-                          <p className="truncate text-[10px] font-semibold text-emerald-200">
+                          <p className="truncate text-[11px] font-extrabold text-white">
                             {session.tutorName}
                           </p>
 
-                          <p className="text-[10px] text-white/60">
+                          <p className="text-[10px] font-semibold text-white/90">
                             {session.startTime} - {session.endTime}
+                          </p>
+
+                          <p className="mt-1 text-[10px] font-bold text-white">
+                            {formatMoney(session.amount)}
                           </p>
                         </div>
                       ))}

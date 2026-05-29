@@ -102,10 +102,10 @@ function StatCard({
   subtext: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <p className="text-sm text-white/60">{title}</p>
-      <p className="mt-2 text-3xl font-bold text-white">{value}</p>
-      <p className="mt-2 text-sm text-white/50">{subtext}</p>
+    <div className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
+      <p className="text-sm font-semibold text-slate-600">{title}</p>
+      <p className="mt-2 text-3xl font-extrabold text-slate-950">{value}</p>
+      <p className="mt-2 text-sm text-slate-500">{subtext}</p>
     </div>
   );
 }
@@ -120,10 +120,10 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-6">
+    <section className="rounded-[28px] border border-blue-100 bg-white p-6 shadow-sm">
       <div className="mb-5">
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-white/55">{subtitle}</p>}
+        <h2 className="text-xl font-extrabold text-slate-950">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
       </div>
       {children}
     </section>
@@ -168,52 +168,54 @@ export default function StudentDashboardClient({
     allSessions.length > 0 ? stats.totalSpent / allSessions.length : 0;
 
   return (
-    <div className="min-h-screen bg-[#07111f]">
+    <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-indigo-500/20 via-sky-500/10 to-emerald-500/10 p-8">
+        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-sky-200/80">
-                Student dashboard
+              <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
+                Student Dashboard
               </p>
 
-              <h1 className="mt-3 text-4xl font-bold text-white">
+              <h1 className="mt-3 text-4xl font-extrabold text-slate-950">
                 Welcome back, {userName}
               </h1>
 
-              <p className="mt-3 max-w-2xl text-white/65">
+              <p className="mt-3 max-w-2xl text-slate-600">
                 View your tutors, scheduled lessons, invoices, payments, and
                 learning progress from one place.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-sm text-white/60">Next session</p>
+            <div className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
+              <p className="text-sm font-semibold text-slate-500">
+                Next Session
+              </p>
 
               {nextSession ? (
                 <>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-extrabold text-slate-950">
                     {nextSession.tutorName}
                   </p>
 
-                  <p className="text-sm text-white/70">
+                  <p className="text-sm text-slate-600">
                     {formatDate(nextSession.lessonDate)} ·{" "}
                     {nextSession.startTime} - {nextSession.endTime}
                   </p>
 
-                  <p className="mt-2 text-sm text-emerald-300">
+                  <p className="mt-2 text-sm font-bold text-green-600">
                     Session amount: {formatMoney(nextSession.amount)}
                   </p>
 
                   <button
                     onClick={() => cancelSession(nextSession.id)}
-                    className="mt-4 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 hover:bg-rose-500/20"
+                    className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100"
                   >
-                    Cancel session
+                    Cancel Session
                   </button>
                 </>
               ) : (
-                <p className="mt-2 text-sm text-white/60">
+                <p className="mt-2 text-sm text-slate-600">
                   No upcoming session scheduled yet.
                 </p>
               )}
@@ -253,23 +255,23 @@ export default function StudentDashboardClient({
             subtitle="Generate bank-transfer invoices and track tutor-confirmed payments."
           >
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-                <p className="text-sm text-white/55">Total billed</p>
-                <p className="mt-2 text-3xl font-bold text-white">
+              <div className="rounded-2xl border border-blue-100 bg-slate-50 p-5">
+                <p className="text-sm text-slate-600">Total billed</p>
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">
                   {formatMoney(stats.totalSpent)}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-emerald-500/10 p-5">
-                <p className="text-sm text-white/55">Confirmed paid</p>
-                <p className="mt-2 text-3xl font-bold text-emerald-300">
+              <div className="rounded-2xl border border-green-100 bg-green-50 p-5">
+                <p className="text-sm text-slate-600">Confirmed paid</p>
+                <p className="mt-2 text-3xl font-extrabold text-green-700">
                   {formatMoney(stats.totalConfirmedPaid)}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-amber-500/10 p-5">
-                <p className="text-sm text-white/55">Remaining balance</p>
-                <p className="mt-2 text-3xl font-bold text-amber-300">
+              <div className="rounded-2xl border border-yellow-100 bg-yellow-50 p-5">
+                <p className="text-sm text-slate-600">Remaining balance</p>
+                <p className="mt-2 text-3xl font-extrabold text-yellow-700">
                   {formatMoney(stats.remainingBalance)}
                 </p>
               </div>
@@ -277,7 +279,7 @@ export default function StudentDashboardClient({
 
             <div className="mt-5 flex flex-wrap gap-3">
               {assignments.length === 0 ? (
-                <p className="text-sm text-white/55">
+                <p className="text-sm text-slate-600">
                   No tutors assigned yet, so no invoice can be generated.
                 </p>
               ) : (
@@ -300,7 +302,7 @@ export default function StudentDashboardClient({
                           amountPaid: Number(assignment.amountPaid || 0),
                         })
                       }
-                      className="rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white hover:bg-purple-700"
+                      className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
                     >
                       Generate Invoice for {assignment.tutor.name}
                     </button>
@@ -313,12 +315,12 @@ export default function StudentDashboardClient({
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.4fr_1fr]">
           <SectionCard
-            title="Assigned tutors"
+            title="Assigned Tutors"
             subtitle="Overview of each tutor, rate, and payment status."
           >
             <div className="space-y-4">
               {assignments.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-sm text-white/60">
+                <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 p-6 text-sm text-slate-600">
                   No tutors assigned yet.
                 </div>
               ) : (
@@ -332,33 +334,33 @@ export default function StudentDashboardClient({
                   return (
                     <div
                       key={item.id}
-                      className="rounded-2xl border border-white/10 bg-black/20 p-5"
+                      className="rounded-2xl border border-blue-100 bg-slate-50 p-5"
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <p className="text-lg font-semibold text-white">
+                          <p className="text-lg font-extrabold text-slate-950">
                             {item.tutor.name}
                           </p>
 
-                          <p className="text-sm text-white/60">
+                          <p className="text-sm text-slate-600">
                             {item.tutor.email}
                           </p>
                         </div>
 
                         <div className="flex flex-wrap gap-3">
-                          <div className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/75">
+                          <div className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700">
                             Rate: {formatMoney(item.tutor.hourlyRate)}/hr
                           </div>
 
-                          <div className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/75">
+                          <div className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700">
                             Billed: {formatMoney(item.accumulatedTotal)}
                           </div>
 
-                          <div className="rounded-xl bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300">
+                          <div className="rounded-xl bg-green-50 px-4 py-2 text-sm font-bold text-green-700">
                             Paid: {formatMoney(amountPaid)}
                           </div>
 
-                          <div className="rounded-xl bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-300">
+                          <div className="rounded-xl bg-yellow-50 px-4 py-2 text-sm font-bold text-yellow-700">
                             Remaining: {formatMoney(remaining)}
                           </div>
                         </div>
@@ -371,32 +373,32 @@ export default function StudentDashboardClient({
           </SectionCard>
 
           <SectionCard
-            title="Learning overview"
+            title="Learning Overview"
             subtitle="Live progress based on confirmed tutoring sessions."
           >
             <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Total sessions</p>
+                <div className="rounded-2xl border border-blue-100 bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">Total sessions</p>
 
-                  <p className="mt-2 text-3xl font-bold text-white">
+                  <p className="mt-2 text-3xl font-extrabold text-slate-950">
                     {stats.totalSessions}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm text-white/55">Learning hours</p>
+                <div className="rounded-2xl border border-blue-100 bg-slate-50 p-4">
+                  <p className="text-sm text-slate-600">Learning hours</p>
 
-                  <p className="mt-2 text-3xl font-bold text-white">
+                  <p className="mt-2 text-3xl font-extrabold text-slate-950">
                     {totalHours.toFixed(1)}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm text-white/55">Average session cost</p>
+              <div className="rounded-2xl border border-blue-100 bg-slate-50 p-4">
+                <p className="text-sm text-slate-600">Average session cost</p>
 
-                <p className="mt-2 text-3xl font-bold text-white">
+                <p className="mt-2 text-3xl font-extrabold text-slate-950">
                   {formatMoney(averageSessionCost)}
                 </p>
               </div>
@@ -406,13 +408,13 @@ export default function StudentDashboardClient({
 
         <div className="mt-8">
           <SectionCard
-            title="Session calendar"
+            title="Session Calendar"
             subtitle="View your confirmed scheduled lessons by date."
           >
             <StudentScheduleView sessions={allSessions} />
           </SectionCard>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
