@@ -146,7 +146,7 @@ export default function StudentScheduleView({
             onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
             className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
           >
-            Next
+            Next 
           </button>
         </div>
 
