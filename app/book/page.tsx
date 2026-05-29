@@ -14,7 +14,9 @@ type Tutor = {
 };
 
 export default function BookPage() {
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const [error, setError] = useState<string | null>(null);
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [tutorsLoading, setTutorsLoading] = useState(true);
@@ -87,94 +89,107 @@ export default function BookPage() {
   }
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-40 left-[-120px] h-[520px] w-[520px] rounded-full bg-indigo-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 right-[-120px] h-[520px] w-[520px] rounded-full bg-purple-500/20 blur-3xl" />
-
+    <main className="min-h-screen bg-slate-50">
       <PageHeader
         title="Request a Tutoring Session"
         subtitle="Pick a tutor, submit your request, and track it from your dashboard."
       />
 
       <Container>
-        <div className="grid gap-10 py-10 lg:grid-cols-3">
+        <div className="grid gap-8 py-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <form
               onSubmit={onSubmit}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur"
+              className="rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl"
             >
-              <div className="mb-6">
-                <label className="mb-2 block text-sm font-medium text-white/80">
-                  Select a tutor <span className="text-rose-300">*</span>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Select a tutor <span className="text-red-500">*</span>
                 </label>
 
                 <select
                   value={selectedTutorId}
                   onChange={(e) => setSelectedTutorId(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 >
                   <option value="" disabled>
                     {tutorsLoading ? "Loading tutors..." : "Choose a tutor"}
                   </option>
+
                   {tutors.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.name} — {t.subjects} (${t.hourlyRate}/hr)
+                      {t.name} — {t.subjects} — AED {t.hourlyRate}/hr
                     </option>
                   ))}
                 </select>
 
                 {selectedTutor && (
-                  <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-sm font-semibold text-white/90">{selectedTutor.name}</p>
-                    <p className="mt-1 text-sm text-white/70">{selectedTutor.subjects}</p>
-                    <p className="mt-2 text-sm text-white/70">{selectedTutor.bio}</p>
+                  <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+                    <p className="font-bold text-slate-950">
+                      {selectedTutor.name}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-blue-700">
+                      {selectedTutor.subjects}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      {selectedTutor.bio}
+                    </p>
+                    <p className="mt-3 text-sm font-bold text-green-700">
+                      AED {selectedTutor.hourlyRate}/hr
+                    </p>
                   </div>
                 )}
               </div>
 
-              <div className="mt-4">
-                <label className="mb-2 block text-sm font-medium text-white/80">
-                  Subject / Topic <span className="text-rose-300">*</span>
+              <div className="mt-5">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Subject / Topic <span className="text-red-500">*</span>
                 </label>
+
                 <input
                   name="subject"
                   required
-                  className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   placeholder="e.g., Trigonometry identities"
                 />
               </div>
 
-              <div className="mt-4">
-                <label className="mb-2 block text-sm font-medium text-white/80">
-                  Preferred times <span className="text-rose-300">*</span>
+              <div className="mt-5">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Preferred times <span className="text-red-500">*</span>
                 </label>
+
                 <input
                   name="preferredTimes"
                   required
-                  className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   placeholder="e.g., Mon/Wed 6–7pm"
                 />
               </div>
 
-              <div className="mt-4">
-                <label className="mb-2 block text-sm font-medium text-white/80">Message (optional)</label>
+              <div className="mt-5">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Message optional
+                </label>
+
                 <textarea
                   name="message"
                   rows={5}
-                  className="w-full resize-none rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
+                  className="w-full resize-none rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   placeholder="Anything the tutor should know?"
                 />
               </div>
 
               {status === "success" && (
-                <div className="mt-5 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-emerald-100">
-                  Request sent! You can now see it from your student dashboard too.
+                <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700">
+                  Request sent! You can now see it from your student dashboard
+                  too.
                 </div>
               )}
 
               {status === "error" && (
-                <div className="mt-5 rounded-xl border border-rose-400/25 bg-rose-500/10 p-4 text-rose-100">
+                <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
                   {error || "Something went wrong."}
                 </div>
               )}
@@ -182,24 +197,62 @@ export default function BookPage() {
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 font-semibold text-black shadow-lg shadow-black/20 transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-6 w-full rounded-2xl bg-blue-600 px-6 py-4 font-bold text-white shadow-lg transition hover:-translate-y-1 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {status === "submitting" ? "Sending..." : "Send request"}
+                {status === "submitting" ? "Sending..." : "Send Request"}
               </button>
             </form>
           </div>
 
-          <aside className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl shadow-black/20 backdrop-blur">
-            <h3 className="text-lg font-semibold text-white">How it works</h3>
-            <ul className="mt-4 space-y-3 text-sm text-white/70">
-              <li>1) Log in</li>
-              <li>2) Pick a tutor</li>
-              <li>3) Submit your request</li>
-              <li>4) Track it from your dashboard</li>
+          <aside className="h-fit rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl">
+            <h3 className="text-2xl font-extrabold text-slate-950">
+              How it works
+            </h3>
+
+            <ul className="mt-6 space-y-4 text-sm text-slate-700">
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                  1
+                </span>
+                Log in to your account
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                  2
+                </span>
+                Pick a tutor
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                  3
+                </span>
+                Submit your request
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                  4
+                </span>
+                Track it from your dashboard
+              </li>
             </ul>
+
+            <div className="mt-8 rounded-2xl bg-green-50 p-5">
+              <p className="text-sm font-semibold text-green-700">
+                Need help choosing a tutor?
+              </p>
+              <a
+                href="https://wa.me/971585897137"
+                className="mt-4 inline-block rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-green-600"
+              >
+                WhatsApp Us
+              </a>
+            </div>
           </aside>
         </div>
       </Container>
-    </div>
+    </main>
   );
 }

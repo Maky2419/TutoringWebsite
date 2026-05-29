@@ -15,35 +15,37 @@ export default async function NavBar() {
       : "Student Dashboard";
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#030712]/70 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b border-blue-200 bg-gradient-to-r from-sky-100 via-blue-100 to-cyan-100 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link
           href="/"
-          className="text-xl font-semibold tracking-tight text-white transition hover:opacity-90"
+          className="text-3xl font-extrabold tracking-tight text-slate-900 transition hover:opacity-90"
         >
-          <span className="text-white">K-</span>
-          <span className="text-indigo-400">Cubed</span>
-          <span className="text-white"> Tutoring</span>
+          <span className="text-slate-900">K-</span>
+          <span className="text-blue-600">Cubed</span>
+          <span className="text-slate-900"> Tutoring</span>
         </Link>
 
-        {/* Center nav pill */}
-        <div className="hidden md:flex items-center rounded-full border border-white/10 bg-white/5 p-1 shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-md">
+        {/* Center nav */}
+        <div className="hidden items-center rounded-full border border-blue-200 bg-white/80 p-1 shadow-sm md:flex">
           <Link
             href="/tutors"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+            className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
           >
             Tutors
           </Link>
+
           <Link
             href="/apply"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+            className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
           >
             Become a Tutor
           </Link>
+
           <Link
             href="/services"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+            className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
           >
             Services
           </Link>
@@ -55,39 +57,41 @@ export default async function NavBar() {
             <>
               <Link
                 href="/dashboard"
-                className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
               >
                 {dashboardLabel}
               </Link>
 
               <Link
                 href="/book"
-                className="rounded-full bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600"
+                className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-blue-700"
               >
                 Book Now
               </Link>
 
-              <SignOutButton />
+              <div className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
+                <SignOutButton />
+              </div>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
               >
                 Login
               </Link>
 
               <Link
                 href="/signup"
-                className="rounded-full px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/10 hover:text-white"
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700"
               >
                 Sign Up
               </Link>
 
               <Link
                 href="/book"
-                className="rounded-full bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600"
+                className="rounded-full bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-blue-700"
               >
                 Book Now
               </Link>

@@ -37,54 +37,62 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-6 py-16">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
-        <h1 className="text-3xl font-semibold text-white">Login</h1>
-        <p className="mt-2 text-sm text-white/60">
-          Log in first to continue with booking.
-        </p>
+    <main className="min-h-screen bg-slate-50 px-6 py-20">
+      <div className="mx-auto max-w-md">
+        <div className="rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl">
+          <h1 className="text-4xl font-extrabold text-slate-950">
+            Login
+          </h1>
 
-        <form onSubmit={handleCredentialsLogin} className="mt-6 space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <p className="mt-3 text-sm text-slate-600">
+            Log in first to continue with booking.
+          </p>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none focus:border-white/25"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <form onSubmit={handleCredentialsLogin} className="mt-8 space-y-5">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-4 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-          {error && (
-            <div className="rounded-xl border border-rose-400/25 bg-rose-500/10 p-3 text-sm text-rose-100">
-              {error}
-            </div>
-          )}
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-4 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-indigo-500 px-4 py-3 font-semibold text-white hover:bg-indigo-400 disabled:opacity-60"
-          >
-            {loading ? "Logging in..." : "Log In"}
-          </button>
-        </form>
+            {error && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                {error}
+              </div>
+            )}
 
-        <p className="mt-6 text-sm text-white/60">
-          Don’t have an account?{" "}
-          <Link href="/signup" className="text-indigo-300 hover:text-indigo-200">
-            Sign up
-          </Link>
-        </p>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-bold text-white shadow-lg transition hover:-translate-y-1 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Logging in..." : "Log In"}
+            </button>
+          </form>
+
+          <p className="mt-7 text-center text-sm text-slate-600">
+            Don’t have an account?{" "}
+            <Link
+              href="/signup"
+              className="font-bold text-blue-600 hover:underline"
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

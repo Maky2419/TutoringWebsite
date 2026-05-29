@@ -38,7 +38,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <NavBar />
         <main className="min-h-[70vh]">{children}</main>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );
