@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -181,11 +182,20 @@ export default function StudentDashboardClient({
                 Welcome back, {userName}
               </h1>
 
+
               <p className="mt-3 max-w-2xl text-slate-600">
                 View your tutors, scheduled lessons, invoices, payments, and
                 learning progress from one place.
               </p>
+
+              
             </div>
+            <Link
+  href="/student/account"
+  className="inline-flex rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-50"
+>
+  Manage Account
+</Link>
 
             <div className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
               <p className="text-sm font-semibold text-slate-500">

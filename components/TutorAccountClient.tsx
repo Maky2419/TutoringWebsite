@@ -55,18 +55,31 @@ export default function TutorAccountClient({
   const [subjectInput, setSubjectInput] = useState("");
   const [education, setEducation] = useState(initialProfile.education);
   const [bio, setBio] = useState(initialProfile.bio);
+
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [student, setStudent] = useState("");
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+
   const [reviewState, setReviewState] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+
+  const [passwordState, setPasswordState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+
   const [saveMessage, setSaveMessage] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
 
   const averageRating = useMemo(() => {
     if (reviews.length === 0) return 0;
@@ -128,6 +141,49 @@ export default function TutorAccountClient({
     } catch (error: any) {
       setSaveState("error");
       setSaveMessage(error?.message || "Something went wrong while saving.");
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPasswordState("saving");
+    setPasswordMessage("");
+
+    if (newPassword !== confirmPassword) {
+      setPasswordState("error");
+      setPasswordMessage("New passwords do not match.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/tutor/profile/password", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update password");
+      }
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordState("saved");
+      setPasswordMessage("Password updated successfully.");
+    } catch (error: any) {
+      setPasswordState("error");
+      setPasswordMessage(
+        error?.message || "Something went wrong while updating password."
+      );
     }
   }
 
@@ -218,132 +274,214 @@ export default function TutorAccountClient({
         </div>
 
         <div className="mt-8 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
-          <SectionCard
-            title="Profile Details"
-            subtitle="Edit your subjects, education, and bio from one place."
-          >
-            <form className="space-y-6" onSubmit={handleSaveProfile}>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Name
-                  </label>
-                  <input
-                    value={initialProfile.name}
-                    disabled
-                    className="w-full rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-slate-700 outline-none"
-                  />
+          <div className="space-y-8">
+            <SectionCard
+              title="Profile Details"
+              subtitle="Edit your subjects, education, and bio from one place."
+            >
+              <form className="space-y-6" onSubmit={handleSaveProfile}>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      Name
+                    </label>
+                    <input
+                      value={initialProfile.name}
+                      disabled
+                      className="w-full rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-slate-700 outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-slate-700">
+                      Email
+                    </label>
+                    <input
+                      value={initialProfile.email}
+                      disabled
+                      className="w-full rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-slate-700 outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Email
+                    Subjects
                   </label>
-                  <input
-                    value={initialProfile.email}
-                    disabled
-                    className="w-full rounded-2xl border border-blue-100 bg-slate-50 px-4 py-3 text-slate-700 outline-none"
-                  />
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      value={subjectInput}
+                      onChange={(e) => setSubjectInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addSubject();
+                        }
+                      }}
+                      placeholder="Add a subject like Calculus or Chemistry"
+                      className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={addSubject}
+                      className="rounded-2xl bg-green-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-green-600"
+                    >
+                      Add Subject
+                    </button>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {subjects.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 px-4 py-3 text-sm text-slate-600">
+                        No subjects added yet.
+                      </div>
+                    ) : (
+                      subjects.map((subject) => (
+                        <button
+                          key={subject}
+                          type="button"
+                          onClick={() => removeSubject(subject)}
+                          className="rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                        >
+                          {subject} ×
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Subjects
-                </label>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Education
+                  </label>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    value={subjectInput}
-                    onChange={(e) => setSubjectInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addSubject();
-                      }
-                    }}
-                    placeholder="Add a subject like Calculus or Chemistry"
+                  <textarea
+                    value={education}
+                    onChange={(e) => setEducation(e.target.value)}
+                    rows={4}
+                    placeholder="Add your degree, certifications, and relevant academic background"
                     className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
-
-                  <button
-                    type="button"
-                    onClick={addSubject}
-                    className="rounded-2xl bg-green-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-green-600"
-                  >
-                    Add Subject
-                  </button>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {subjects.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 px-4 py-3 text-sm text-slate-600">
-                      No subjects added yet.
-                    </div>
-                  ) : (
-                    subjects.map((subject) => (
-                      <button
-                        key={subject}
-                        type="button"
-                        onClick={() => removeSubject(subject)}
-                        className="rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
-                      >
-                        {subject} ×
-                      </button>
-                    ))
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Bio
+                  </label>
+
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={7}
+                    placeholder="Describe your teaching style, experience, and how you support students"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="submit"
+                    disabled={saveState === "saving"}
+                    className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {saveState === "saving" ? "Saving..." : "Save Profile"}
+                  </button>
+
+                  {saveMessage && (
+                    <p
+                      className={`text-sm font-semibold ${
+                        saveState === "error"
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {saveMessage}
+                    </p>
                   )}
                 </div>
-              </div>
+              </form>
+            </SectionCard>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Education
-                </label>
+            <SectionCard
+              title="Change Password"
+              subtitle="Update the password used to sign in to your tutor account."
+            >
+              <form className="space-y-5" onSubmit={handleChangePassword}>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Current Password
+                  </label>
 
-                <textarea
-                  value={education}
-                  onChange={(e) => setEducation(e.target.value)}
-                  rows={4}
-                  placeholder="Add your degree, certifications, and relevant academic background"
-                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
+                  <input
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    placeholder="Enter your current password"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Bio
-                </label>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    New Password
+                  </label>
 
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={7}
-                  placeholder="Describe your teaching style, experience, and how you support students"
-                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    placeholder="Enter a new password"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button
-                  type="submit"
-                  disabled={saveState === "saving"}
-                  className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {saveState === "saving" ? "Saving..." : "Save Profile"}
-                </button>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Confirm New Password
+                  </label>
 
-                {saveMessage && (
-                  <p
-                    className={`text-sm font-semibold ${
-                      saveState === "error" ? "text-red-600" : "text-green-600"
-                    }`}
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    placeholder="Re-enter your new password"
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="submit"
+                    disabled={passwordState === "saving"}
+                    className="rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {saveMessage}
-                  </p>
-                )}
-              </div>
-            </form>
-          </SectionCard>
+                    {passwordState === "saving"
+                      ? "Updating..."
+                      : "Update Password"}
+                  </button>
+
+                  {passwordMessage && (
+                    <p
+                      className={`text-sm font-semibold ${
+                        passwordState === "error"
+                          ? "text-red-600"
+                          : "text-green-600"
+                      }`}
+                    >
+                      {passwordMessage}
+                    </p>
+                  )}
+                </div>
+              </form>
+            </SectionCard>
+          </div>
 
           <div className="space-y-8">
             <SectionCard

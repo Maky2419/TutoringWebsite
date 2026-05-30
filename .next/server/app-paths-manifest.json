@@ -1,10 +1,7 @@
 {
-  "/tutor/account/page": "app/tutor/account/page.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/page": "app/page.js",
-  "/tutors/page": "app/tutors/page.js",
   "/student/dashboard/page": "app/student/dashboard/page.js",
-  "/api/tutors/route": "app/api/tutors/route.js",
-  "/tutors/[id]/page": "app/tutors/[id]/page.js",
-  "/book/page": "app/book/page.js"
+  "/student/account/page": "app/student/account/page.js",
+  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/tutor/account/page": "app/tutor/account/page.js"
 }

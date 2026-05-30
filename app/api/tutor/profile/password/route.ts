@@ -1,0 +1,56 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import bcrypt from "bcryptjs";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export async function PATCH(req: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user || (session.user as any).role !== "TUTOR") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+
+  const currentPassword = String(body.currentPassword || "");
+  const newPassword = String(body.newPassword || "");
+  const confirmPassword = String(body.confirmPassword || "");
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return NextResponse.json({ error: "All password fields are required" }, { status: 400 });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return NextResponse.json({ error: "New passwords do not match" }, { status: 400 });
+  }
+
+  if (newPassword.length < 8) {
+    return NextResponse.json({ error: "New password must be at least 8 characters" }, { status: 400 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: (session.user as any).id },
+  });
+
+  if (!user || !user.password) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const isCorrect = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isCorrect) {
+    return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  return NextResponse.json({ ok: true, message: "Password updated successfully" });
+}
