@@ -76,13 +76,13 @@ export default function Chatbot() {
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 rounded-full bg-blue-600 px-5 py-4 text-white shadow-lg hover:bg-blue-700"
       >
-        Chat
+        Chat here
       </button>
 
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[350px] flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl">
           <div className="rounded-t-2xl bg-blue-600 px-4 py-3 text-white">
-            <h2 className="font-bold">Kcubed Assistant</h2>
+            <h2 className="font-bold">Kcubed Virtual Assistant</h2>
             <p className="text-sm text-blue-100">Ask about tutoring</p>
           </div>
 
