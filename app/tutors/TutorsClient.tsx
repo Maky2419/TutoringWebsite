@@ -225,7 +225,7 @@ export default function TutorsClient() {
             </button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="flex flex-col gap-2">
               <label htmlFor="search" className="text-sm font-semibold text-slate-700">
                 Search
@@ -335,8 +335,8 @@ export default function TutorsClient() {
         </div>
 
         {/* TUTOR CARDS */}
-        <div className="grid gap-6 pb-14 md:grid-cols-2 xl:grid-cols-3">
-          {!loading &&
+      <div className="grid gap-6 pb-14 sm:grid-cols-2 xl:grid-cols-3">
+            {!loading &&
             filteredTutors.map((t) => (
               <Link
                 key={t.id}
@@ -393,13 +393,13 @@ export default function TutorsClient() {
             ))}
 
           {!loading && filteredTutors.length === 0 && (
-            <div className="col-span-full rounded-3xl border border-blue-100 bg-white p-8 text-slate-700 shadow-sm">
+            <div className="col-span-full rounded-3xl border border-blue-100 bg-white p-5 sm:p-7 md:p-8 text-slate-700 shadow-sm">
               No tutors match your selected filters yet.
             </div>
           )}
 
           {loading && (
-            <div className="col-span-full rounded-3xl border border-blue-100 bg-white p-8 text-slate-700 shadow-sm">
+            <div className="col-span-full rounded-3xl border border-blue-100 bg-white p-5 sm:p-7 md:p-8 text-slate-700 shadow-sm">
               Loading tutors…
             </div>
           )}

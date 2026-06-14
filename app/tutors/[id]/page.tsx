@@ -56,8 +56,8 @@ export default async function TutorPage({
       <Container>
         <div className="space-y-8 py-10">
           {/* Profile Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
-            <div className="flex flex-wrap items-start justify-between gap-8">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7 md:p-8 shadow-xl">
+            <div className="flex flex-wrap items-start justify-between gap-5 sm:p-7 md:p-8">
               <div className="space-y-6 flex-1">
                 <div>
                   <p className="text-sm font-medium text-slate-500">
@@ -154,7 +154,7 @@ export default async function TutorPage({
           </div>
 
           {/* Reviews */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7 md:p-8 shadow-xl">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-slate-900">
                 Reviews

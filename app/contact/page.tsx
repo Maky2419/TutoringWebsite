@@ -39,8 +39,8 @@ export default function ContactPage() {
       <Container>
         <div className="mx-auto max-w-6xl px-4 md:px-6 py-10 space-y-10">
           {/* Main cards */}
-          <section className="grid gap-6 lg:grid-cols-3">
-            {/* WhatsApp */}
+<section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {/* WhatsApp */}
             <div className="rounded-2xl border border-white/10 bg-white/5 p-7 shadow-xl shadow-black/20 backdrop-blur">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -146,13 +146,13 @@ export default function ContactPage() {
           </section>
 
           {/* What to include */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur">
             <h3 className="text-lg font-semibold text-white">What to include in your message</h3>
             <p className="mt-2 text-white/70">
               To match you with the best tutor quickly, please include:
             </p>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <ChecklistItem text="Student name + grade/level" />
               <ChecklistItem text="Subject(s) and what they’re struggling with" />
               <ChecklistItem text="Country + time zone" />

@@ -17,7 +17,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-6xl px-4 md:px-6 py-10 space-y-10">
 
           {/* Story */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur">
             <h2 className="text-xl font-semibold text-white">How it all began</h2>
             <div className="mt-4 space-y-4 text-white/80 leading-relaxed">
               <p>
@@ -37,7 +37,7 @@ export default function AboutPage() {
           </section>
 
           {/* Global + Values */}
-          <section className="grid gap-8 xl:grid-cols-2">
+          <section className="grid gap-5 sm:p-7 md:p-8 xl:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-7 shadow-xl shadow-black/20 backdrop-blur">
               <h3 className="text-lg font-semibold text-white">An international tutoring team</h3>
               <p className="mt-3 text-white/80">
@@ -61,9 +61,9 @@ export default function AboutPage() {
           </section>
 
           {/* Where we tutor */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur">
             <h3 className="text-lg font-semibold text-white">Where we tutor</h3>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <RegionCard title="Middle East" flags={["🇦🇪","🇸🇦","🇶🇦","🇰🇼","🇧🇭","🇴🇲","🇯🇴","🇱🇧"]} />
               <RegionCard title="North America" flags={["🇺🇸","🇨🇦"]} />
               <RegionCard title="Europe" flags={["🇩🇪","🇪🇸","🇫🇷","🇬🇧","🇮🇹","🇳🇱","🇸🇪"]} />
@@ -72,20 +72,20 @@ export default function AboutPage() {
           </section>
 
           {/* Success Stories */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur">
             <h3 className="text-lg font-semibold text-white">Student success stories</h3>
-            <div className="mt-6 grid gap-5 md:grid-cols-3">
-              <SuccessCard title="C → A in 6 weeks" text="Grade 11 student rebuilt math foundations and reached an A." />
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <SuccessCard title="C → A in 6 weeks" text="Grade 11 student rebuilt math foundations and reached an A." />
               <SuccessCard title="IB Physics pass" text="Student passed IB Physics after failing three times." />
               <SuccessCard title="1450 SAT" text="Achieved in just two months with focused prep." />
             </div>
           </section>
 
           {/* How lessons work */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur">
             <h3 className="text-lg font-semibold text-white">How lessons work</h3>
-            <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-              <StepCard n="1" t="Diagnostic" />
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+                <StepCard n="1" t="Diagnostic" />
               <StepCard n="2" t="Custom plan" />
               <StepCard n="3" t="Weekly tracking" />
               <StepCard n="4" t="Homework review" />
@@ -94,9 +94,9 @@ export default function AboutPage() {
           </section>
 
           {/* Curriculums */}
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur">
             <h3 className="text-lg font-semibold text-white">Curriculums we support</h3>
-            <div className="mt-6 grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {["IB","IGCSE","GCSE","SAT / ACT","AP","American","British","UAE MoE","CBSE"].map(c => (
                 <div key={c} className="rounded-xl border border-white/10 bg-black/20 p-4 text-center text-white/80">
                   {c}

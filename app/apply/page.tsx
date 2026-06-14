@@ -46,7 +46,7 @@ export default function ApplyPage() {
 
       <Container>
         <div className="mx-auto max-w-3xl px-4 pb-20 pt-8 md:px-6">
-          <section className="rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl">
+          <section className="rounded-[32px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl">
             {state === "success" ? (
               <div className="rounded-2xl border border-green-100 bg-green-50 p-6">
                 <h2 className="text-2xl font-extrabold text-slate-950">

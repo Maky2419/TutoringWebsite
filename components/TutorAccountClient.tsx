@@ -238,14 +238,14 @@ export default function TutorAccountClient({
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-8 shadow-xl">
+        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-5 sm:p-7 md:p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
                 Tutor Account
               </p>
 
-              <h1 className="mt-3 text-4xl font-extrabold text-slate-950">
+              <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
                 Manage your public profile
               </h1>
 
@@ -273,7 +273,7 @@ export default function TutorAccountClient({
           </div>
         </div>
 
-        <div className="mt-8 grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="mt-8 grid gap-5 sm:p-7 md:p-8 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-8">
             <SectionCard
               title="Profile Details"

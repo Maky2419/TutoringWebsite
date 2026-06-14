@@ -122,7 +122,7 @@ export default function PricingPage() {
               <div
                 key={p.title}
                 className={[
-                  "rounded-2xl border bg-white/5 p-8 shadow-xl shadow-black/20 backdrop-blur",
+                  "rounded-2xl border bg-white/5 p-5 sm:p-7 md:p-8 shadow-xl shadow-black/20 backdrop-blur",
                   p.highlight ? "border-white/20" : "border-white/10"
                 ].join(" ")}
               >
@@ -140,7 +140,7 @@ export default function PricingPage() {
                 </div>
 
                 <div className="mt-6">
-                  <p className="text-4xl font-semibold text-white">{formatMoney(p.value)}</p>
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white">{formatMoney(p.value)}</p>
                   <p className="mt-2 text-sm text-white/60">({p.aed} AED base)</p>
                 </div>
 

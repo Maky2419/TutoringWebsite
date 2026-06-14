@@ -60,14 +60,14 @@ export default function StudentAccountClient({ initialUser }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-8 shadow-xl">
+        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-5 sm:p-7 md:p-8 shadow-xl">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
                 Student Account
               </p>
 
-              <h1 className="mt-3 text-4xl font-extrabold text-slate-950">
+              <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
                 Manage Your Account
               </h1>
 
@@ -86,7 +86,7 @@ export default function StudentAccountClient({ initialUser }: Props) {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-2">
+        <div className="mt-8 grid gap-5 sm:p-7 md:p-8 lg:grid-cols-2">
           <section className="rounded-[28px] border border-blue-100 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-extrabold text-slate-950">
               Account Information

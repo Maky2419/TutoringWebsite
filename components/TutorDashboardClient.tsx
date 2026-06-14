@@ -231,14 +231,14 @@ export default function TutorDashboardClient({
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-8 shadow-xl">
+        <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-5 sm:p-7 md:p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">
                 Tutor Dashboard
               </p>
 
-              <h1 className="mt-3 text-4xl font-extrabold text-slate-950">
+              <h1 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
                 Welcome back, {userName}
               </h1>
 
@@ -370,7 +370,7 @@ export default function TutorDashboardClient({
           </SectionCard>
         </div>
 
-        <div className="mt-8 grid gap-8 xl:grid-cols-[1.3fr_1fr]">
+        <div className="mt-8 grid gap-5 sm:p-7 md:p-8 xl:grid-cols-[1.3fr_1fr]">
           <SectionCard
             title="Upcoming Sessions"
             subtitle="Cancelled sessions are excluded from this list."
@@ -465,7 +465,7 @@ export default function TutorDashboardClient({
           </SectionCard>
         </div>
 
-        <div className="mt-8 grid gap-8 xl:grid-cols-[1.35fr_1fr]">
+        <div className="mt-8 grid gap-5 sm:p-7 md:p-8 xl:grid-cols-[1.35fr_1fr]">
           <div className="rounded-[28px] border border-blue-100 bg-white p-6 shadow-sm">
             <TutorScheduleManager />
           </div>

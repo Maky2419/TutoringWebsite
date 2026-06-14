@@ -106,11 +106,11 @@ export default function BookPage() {
       />
 
       <Container>
-        <div className="grid gap-8 py-10 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+<div className="grid gap-8 py-8 lg:grid-cols-3 lg:py-10">
+            <div className="lg:col-span-2">
             <form
               onSubmit={onSubmit}
-              className="rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl"
+              className="rounded-[32px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl"
             >
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -215,34 +215,34 @@ export default function BookPage() {
             </form>
           </div>
 
-          <aside className="h-fit rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl">
+          <aside className="h-fit rounded-[32px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl">
             <h3 className="text-2xl font-extrabold text-slate-950">
               How it works
             </h3>
 
             <ul className="mt-6 space-y-4 text-sm text-slate-700">
-              <li className="flex gap-3">
+              <li className="flex flex-col gap-3 sm:flex-row">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                   1
                 </span>
                 Log in to your account
               </li>
 
-              <li className="flex gap-3">
+              <li className="flex flex-col gap-3 sm:flex-row">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                   2
                 </span>
                 Pick a tutor
               </li>
 
-              <li className="flex gap-3">
+              <li className="flex flex-col gap-3 sm:flex-row">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                   3
                 </span>
                 Submit your request
               </li>
 
-              <li className="flex gap-3">
+              <li className="flex flex-col gap-3 sm:flex-row">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                   4
                 </span>

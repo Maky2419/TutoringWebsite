@@ -39,8 +39,8 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-20">
       <div className="mx-auto max-w-md">
-        <div className="rounded-[32px] border border-blue-100 bg-white p-8 shadow-xl">
-          <h1 className="text-4xl font-extrabold text-slate-950">
+        <div className="rounded-[32px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
             Login
           </h1>
 

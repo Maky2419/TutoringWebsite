@@ -99,8 +99,8 @@ export default function ServicesPage() {
 
       <Container>
         <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-          <section className="grid gap-6 md:grid-cols-2">
-            {services.map((s) => (
+<section className="grid gap-6 sm:grid-cols-2">
+              {services.map((s) => (
               <div
                 key={s.title}
                 className="rounded-[28px] border border-blue-100 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
@@ -123,7 +123,7 @@ export default function ServicesPage() {
 
                 <ul className="mt-6 space-y-3 text-sm text-slate-700">
                   {s.bullets.map((b) => (
-                    <li key={b} className="flex gap-3">
+                    <li key={b} className="flex flex-col gap-3 sm:flex-row">
                       <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
                         ✓
                       </span>
@@ -135,7 +135,7 @@ export default function ServicesPage() {
             ))}
           </section>
 
-          <section className="mt-10 rounded-[28px] border border-blue-100 bg-white p-8 shadow-sm">
+          <section className="mt-10 rounded-[28px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-sm">
             <h3 className="text-2xl font-extrabold text-slate-950">
               How it works
             </h3>
@@ -145,8 +145,8 @@ export default function ServicesPage() {
               improving.
             </p>
 
-            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-5">
-              {steps.map((st) => (
+<div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+                  {steps.map((st) => (
                 <div
                   key={st.n}
                   className="rounded-2xl bg-blue-50 p-5 text-center"
@@ -166,7 +166,7 @@ export default function ServicesPage() {
           </section>
 
           <section className="mt-10 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-[28px] border border-blue-100 bg-white p-8 shadow-sm">
+            <div className="rounded-[28px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-sm">
               <h3 className="text-2xl font-extrabold text-slate-950">
                 Subjects we help with
               </h3>
@@ -196,7 +196,7 @@ export default function ServicesPage() {
             <DeliveryCard />
           </section>
 
-          <section className="mt-10 rounded-[28px] bg-blue-600 p-8 shadow-xl">
+          <section className="mt-10 rounded-[28px] bg-blue-600 p-5 sm:p-7 md:p-8 shadow-xl">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-2xl font-extrabold text-white">
@@ -225,7 +225,7 @@ export default function ServicesPage() {
 
 function DeliveryCard() {
   return (
-    <div className="rounded-[28px] border border-blue-100 bg-white p-8 shadow-sm">
+    <div className="rounded-[28px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-sm">
       <h3 className="text-2xl font-extrabold text-slate-950">
         Online & in-person tuition
       </h3>

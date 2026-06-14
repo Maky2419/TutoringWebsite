@@ -56,13 +56,13 @@ export default async function HomePage() {
     <main className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
       <section className="border-b border-blue-100 bg-gradient-to-br from-white via-sky-50 to-blue-50">
         <Container>
-          <div className="grid items-center gap-10 py-12 md:grid-cols-2 md:py-16">
-            <div>
+<div className="grid items-center gap-8 py-10 md:grid-cols-2 md:gap-10 md:py-16">
+              <div>
               <p className="inline-flex rounded-full border border-blue-100 bg-white px-5 py-2 text-sm font-semibold text-blue-700 shadow-sm">
                 IB Curriculum Specialist
               </p>
 
-              <h1 className="mt-7 text-5xl font-extrabold leading-tight tracking-tight text-slate-950 md:text-7xl">
+              <h1 className="mt-7 text-2xl sm:text-3xl md:text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight tracking-tight text-slate-950 md:text-7xl">
                 Premium
                 <span className="block text-blue-600">One-on-One</span>
                 Tutoring
@@ -90,8 +90,8 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="rounded-[36px] border border-blue-100 bg-white p-6 shadow-xl">
-              <div className="rounded-[28px] bg-blue-50 p-8">
+            <div className="rounded-3xl md:rounded-[36px] border border-blue-100 bg-white p-6 shadow-xl">
+              <div className="rounded-[28px] bg-blue-50 p-5 sm:p-7 md:p-8">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
                   Personalized Learning
                 </p>
@@ -133,11 +133,11 @@ export default async function HomePage() {
       <div className="flex-1">
         <Container>
           <section className="py-16">
-            <div className="rounded-[36px] border border-blue-100 bg-white p-8 shadow-xl md:p-12">
+            <div className="rounded-3xl md:rounded-[36px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl md:p-12">
               <div className="mx-auto mb-8 max-w-3xl text-center">
                 <p className="font-semibold text-blue-600">Why K-Cubed?</p>
 
-                <h2 className="mt-3 text-4xl font-extrabold text-slate-950">
+                <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
                   Tutoring designed around the student
                 </h2>
 
@@ -177,12 +177,12 @@ export default async function HomePage() {
           </section>
 
           <section className="py-8">
-            <div className="rounded-[36px] border border-blue-100 bg-white p-6 shadow-xl">
+            <div className="rounded-3xl md:rounded-[36px] border border-blue-100 bg-white p-6 shadow-xl">
               <div className="rounded-[28px] bg-blue-600 px-8 py-16 md:px-14">
                 <div className="text-center text-white">
                   <p className="font-semibold text-blue-100">Subjects</p>
 
-                  <h2 className="mt-3 text-4xl font-extrabold">
+                  <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold">
                     Our Tutors Specialize In
                   </h2>
                 </div>
@@ -204,11 +204,11 @@ export default async function HomePage() {
           </section>
 
           <section className="py-8">
-            <div className="rounded-[36px] border border-blue-100 bg-white p-8 shadow-xl md:p-12">
+            <div className="rounded-3xl md:rounded-[36px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl md:p-12">
               <div className="mx-auto mb-12 max-w-3xl text-center">
                 <p className="font-semibold text-blue-600">Tutor Profiles</p>
 
-                <h2 className="mt-3 text-4xl font-extrabold text-slate-950">
+                <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
                   Meet Our Tutors
                 </h2>
 
@@ -219,7 +219,7 @@ export default async function HomePage() {
               </div>
 
               {tutors.length > 0 ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 sm:p-7 md:p-8 md:grid-cols-2 lg:grid-cols-3">
                   {tutors.map((tutor) => {
                     const tutorSubjects = toList(tutor.subjects);
 
@@ -280,17 +280,17 @@ export default async function HomePage() {
           </section>
 
           <section className="py-8">
-            <div className="rounded-[36px] border border-blue-100 bg-white p-8 shadow-xl md:p-12">
+            <div className="rounded-3xl md:rounded-[36px] border border-blue-100 bg-white p-5 sm:p-7 md:p-8 shadow-xl md:p-12">
               <div className="mx-auto mb-12 max-w-3xl text-center">
                 <p className="font-semibold text-blue-600">Testimonials</p>
 
-                <h2 className="mt-3 text-4xl font-extrabold text-slate-950">
+                <h2 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-950">
                   Parent & Student Feedback
                 </h2>
               </div>
 
               {testimonials.length > 0 ? (
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 sm:p-7 md:p-8 md:grid-cols-2 lg:grid-cols-3">
                   {testimonials.map((review) => (
                     <div
                       key={review.id}
@@ -326,9 +326,9 @@ export default async function HomePage() {
           </section>
 
           <section className="py-8">
-            <div className="rounded-[36px] border border-blue-100 bg-white p-6 shadow-xl">
+            <div className="rounded-3xl md:rounded-[36px] border border-blue-100 bg-white p-6 shadow-xl">
               <div className="overflow-hidden rounded-[28px] bg-gradient-to-br from-blue-600 to-sky-500 px-8 py-16 text-center md:px-14">
-                <h2 className="text-4xl font-extrabold text-white md:text-5xl">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white md:text-5xl">
                   Start Learning With Confidence
                 </h2>
 
@@ -360,8 +360,8 @@ export default async function HomePage() {
 
       <footer className="mt-8 bg-slate-950 px-8 py-14 text-white">
         <Container>
-          <div className="grid gap-10 md:grid-cols-4">
-            <div>
+<div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
               <h3 className="text-3xl font-extrabold">
                 K-<span className="text-blue-400">Cubed</span>
               </h3>
