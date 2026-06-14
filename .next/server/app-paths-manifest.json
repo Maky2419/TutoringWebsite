@@ -1,7 +1,4 @@
 {
-  "/student/dashboard/page": "app/student/dashboard/page.js",
-  "/student/account/page": "app/student/account/page.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/login/page": "app/login/page.js",
-  "/tutor/account/page": "app/tutor/account/page.js"
+  "/page": "app/page.js",
+  "/api/chatbot/route": "app/api/chatbot/route.js"
 }

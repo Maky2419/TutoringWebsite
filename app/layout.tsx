@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
+import Chatbot from "@/components/Chatbot";
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <NavBar />
         <main className="min-h-[70vh]">{children}</main>
+        <Chatbot />
         {/* <Footer /> */}
       </body>
     </html>
