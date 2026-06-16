@@ -95,14 +95,12 @@ export default function SignupPage() {
               required
             />
 
-            <select
-              className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-4 text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-            >
-              <option value="STUDENT">Student</option>
-              <option value="TUTOR">Tutor</option>
-            </select>
+            <input
+  type="text"
+  value="Student"
+  disabled
+  className="w-full rounded-2xl border border-blue-100 bg-slate-100 px-4 py-4 text-slate-600"
+/>
 
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">

@@ -9,8 +9,7 @@ export async function POST(req: Request) {
     const name = String(body.name || "").trim();
     const email = String(body.email || "").trim().toLowerCase();
     const password = String(body.password || "");
-    const role = body.role === "TUTOR" ? "TUTOR" : "STUDENT";
-
+const role = "STUDENT";
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
@@ -48,21 +47,21 @@ export async function POST(req: Request) {
       },
     });
 
-    if (role === "TUTOR") {
-      await prisma.tutor.create({
-        data: {
-          name,
-          email,
-          category: "General",
-          subjects: [],
-          curriculum: [],
-          bio: "Update your tutor profile from your dashboard.",
-          education: "",
-          hourlyRate: 0,
-          userId: user.id,
-        },
-      });
-    }
+    // if (role === "TUTOR") {
+    //   await prisma.tutor.create({
+    //     data: {
+    //       name,
+    //       email,
+    //       category: "General",
+    //       subjects: [],
+    //       curriculum: [],
+    //       bio: "Update your tutor profile from your dashboard.",
+    //       education: "",
+    //       hourlyRate: 0,
+    //       userId: user.id,
+    //     },
+    //   });
+    // }
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {
