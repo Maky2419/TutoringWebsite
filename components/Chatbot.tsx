@@ -72,12 +72,12 @@ export default function Chatbot() {
 
   return (
     <>
-      <button
+      {/* <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 rounded-full bg-blue-600 px-5 py-4 text-white shadow-lg hover:bg-blue-700"
       >
         Chat with our virtual assistant here!
-      </button>
+      </button> */}
 
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[350px] flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl">

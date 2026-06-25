@@ -1,7 +1,3 @@
 {
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/tutor/dashboard/page": "app/tutor/dashboard/page.js",
-  "/tutors/page": "app/tutors/page.js",
-  "/admin/create-tutor/page": "app/admin/create-tutor/page.js",
-  "/tutors/[id]/page": "app/tutors/[id]/page.js"
+  "/page": "app/page.js"
 }

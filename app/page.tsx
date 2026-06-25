@@ -166,10 +166,7 @@ export default async function HomePage() {
                     <h3 className="text-lg font-bold text-slate-900">
                       {benefit}
                     </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                      Structured academic support built around the student’s
-                      goals.
-                    </p>
+                  
                   </div>
                 ))}
               </div>
