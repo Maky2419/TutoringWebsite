@@ -3,6 +3,7 @@ import "./globals.css";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import Chatbot from "@/components/Chatbot";
+import { CurrencyProvider } from "@/components/CurrencyProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -37,11 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <NavBar />
-        <main className="min-h-[70vh]">{children}</main>
-        <Chatbot />
-        {/* <Footer /> */}
-      </body>
+  <CurrencyProvider>
+    <NavBar />
+    <main className="min-h-[70vh]">{children}</main>
+    <Chatbot />
+  </CurrencyProvider>
+</body>
     </html>
   );
 }

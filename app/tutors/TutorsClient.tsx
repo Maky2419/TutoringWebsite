@@ -5,6 +5,7 @@ import PageHeader from "../../components/PageHeader";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Money } from "@/components/CurrencyProvider";
 
 const SUBJECT_CATALOG = {
   Languages: [
@@ -373,8 +374,8 @@ export default function TutorsClient() {
                   </div>
 
                   <div className="shrink-0 rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold text-white">
-                    ${t.hourlyRate}/hr
-                  </div>
+  <Money amountUSD={t.hourlyRate ?? 0} suffix="/hr" />
+</div>
                 </div>
 
                 <p className="mt-5 line-clamp-4 text-sm leading-relaxed text-slate-600">

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Money } from "@/components/CurrencyProvider";
 
 type Student = {
   id: string;
@@ -34,10 +35,6 @@ type AssignmentResponse = {
   };
   hourlyRate: number;
 };
-
-function money(value: string | number) {
-  return `$${Number(value || 0).toFixed(2)} USD`;
-}
 
 function prettyDate(value: string) {
   return new Date(value).toLocaleDateString(undefined, {
@@ -165,54 +162,54 @@ export default function TutorScheduleManager() {
   }
 
   async function saveSession(e: FormEvent) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!selectedStudentId) return;
+    if (!selectedStudentId) return;
 
-  setSaving(true);
+    setSaving(true);
 
-  const isEditing = Boolean(form.sessionId);
+    const isEditing = Boolean(form.sessionId);
 
-  const lessonDates =
-    repeatFourWeeks && !isEditing
-      ? [
-          form.lessonDate,
-          addDays(form.lessonDate, 7),
-          addDays(form.lessonDate, 14),
-          addDays(form.lessonDate, 21),
-        ]
-      : [form.lessonDate];
+    const lessonDates =
+      repeatFourWeeks && !isEditing
+        ? [
+            form.lessonDate,
+            addDays(form.lessonDate, 7),
+            addDays(form.lessonDate, 14),
+            addDays(form.lessonDate, 21),
+          ]
+        : [form.lessonDate];
 
-  for (const lessonDate of lessonDates) {
-    await fetch("/api/tutor/sessions", {
-      method: isEditing ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        studentId: selectedStudentId,
-        sessionId: isEditing ? Number(form.sessionId) : undefined,
-        lessonDate,
-        startTime: form.startTime,
-        endTime: form.endTime,
-        notes: form.notes,
-      }),
+    for (const lessonDate of lessonDates) {
+      await fetch("/api/tutor/sessions", {
+        method: isEditing ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId: selectedStudentId,
+          sessionId: isEditing ? Number(form.sessionId) : undefined,
+          lessonDate,
+          startTime: form.startTime,
+          endTime: form.endTime,
+          notes: form.notes,
+        }),
+      });
+    }
+
+    setForm({
+      sessionId: "",
+      lessonDate: "",
+      startTime: "",
+      endTime: "",
+      notes: "",
     });
+
+    setRepeatFourWeeks(false);
+
+    await loadSchedule(selectedStudentId);
+    setSaving(false);
   }
-
-  setForm({
-    sessionId: "",
-    lessonDate: "",
-    startTime: "",
-    endTime: "",
-    notes: "",
-  });
-
-  setRepeatFourWeeks(false);
-
-  await loadSchedule(selectedStudentId);
-  setSaving(false);
-}
 
   function editSession(session: TeachingSession) {
     if (session.status === "cancelled") return;
@@ -258,9 +255,11 @@ export default function TutorScheduleManager() {
               Current total
             </p>
             <p className="text-2xl font-black text-green-700">
-              {scheduleData
-                ? money(scheduleData.assignment.accumulatedTotal)
-                : "$0.00 USD"}
+              {scheduleData ? (
+                <Money amountUSD={scheduleData.assignment.accumulatedTotal} />
+              ) : (
+                <Money amountUSD={0} />
+              )}
             </p>
           </div>
 
@@ -424,7 +423,6 @@ export default function TutorScheduleManager() {
                         <p className="text-sm font-bold text-slate-950">
                           Repeat weekly for 4 weeks
                         </p>
-                  
                       </div>
                     </label>
                   </div>
@@ -556,7 +554,11 @@ export default function TutorScheduleManager() {
                                   : "bg-green-50 text-green-700"
                               }`}
                             >
-                              {isCancelled ? "Cancelled" : money(session.amount)}
+                              {isCancelled ? (
+                                "Cancelled"
+                              ) : (
+                                <Money amountUSD={session.amount} />
+                              )}
                             </span>
 
                             {!isCancelled && (

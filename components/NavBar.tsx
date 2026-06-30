@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../lib/auth";
 import SignOutButton from "./SignOutButton";
+import CurrencyToggle from "./CurrencyToggle";
 
 export default async function NavBar() {
   const session = await getServerSession(authOptions);
@@ -68,6 +69,8 @@ export default async function NavBar() {
               >
                 Book Now
               </Link>
+              <CurrencyToggle />
+              
 
               <div className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700">
                 <SignOutButton />
@@ -95,6 +98,7 @@ export default async function NavBar() {
               >
                 Book Now
               </Link>
+              <CurrencyToggle />
             </>
           )}
         </div>

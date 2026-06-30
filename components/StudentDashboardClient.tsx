@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import StudentScheduleView from "./StudentScheduleView";
 import { generateInvoice } from "@/lib/generateInvoice";
+import { Money } from "@/components/CurrencyProvider";
 
 type Tutor = {
   id: number;
@@ -80,9 +81,7 @@ type Props = {
   };
 };
 
-function formatMoney(value: number | string) {
-  return `$${Number(value || 0).toFixed(2)} USD`;
-}
+
 
 function formatDate(dateValue: Date | string) {
   return new Date(dateValue).toLocaleDateString(undefined, {
@@ -99,7 +98,7 @@ function StatCard({
   subtext,
 }: {
   title: string;
-  value: string;
+ value: React.ReactNode;
   subtext: string;
 }) {
   return (
@@ -214,8 +213,7 @@ export default function StudentDashboardClient({
                   </p>
 
                   <p className="mt-2 text-sm font-bold text-green-600">
-                    Session amount: {formatMoney(nextSession.amount)}
-                  </p>
+Session amount: <Money amountUSD={nextSession.amount} />                  </p>
 
                   <button
                     onClick={() => cancelSession(nextSession.id)}
@@ -254,7 +252,7 @@ export default function StudentDashboardClient({
 
           <StatCard
             title="Total Spent"
-            value={formatMoney(stats.totalSpent)}
+value={<Money amountUSD={stats.totalSpent} />}
             subtext="Running total across tutors"
           />
         </div>
@@ -268,21 +266,21 @@ export default function StudentDashboardClient({
               <div className="rounded-2xl border border-blue-100 bg-slate-50 p-5">
                 <p className="text-sm text-slate-600">Total billed</p>
                 <p className="mt-2 text-3xl font-extrabold text-slate-950">
-                  {formatMoney(stats.totalSpent)}
+                  <Money amountUSD={stats.totalSpent} />
                 </p>
               </div>
 
               <div className="rounded-2xl border border-green-100 bg-green-50 p-5">
                 <p className="text-sm text-slate-600">Confirmed paid</p>
                 <p className="mt-2 text-3xl font-extrabold text-green-700">
-                  {formatMoney(stats.totalConfirmedPaid)}
+                  <Money amountUSD={stats.totalConfirmedPaid} />
                 </p>
               </div>
 
               <div className="rounded-2xl border border-yellow-100 bg-yellow-50 p-5">
                 <p className="text-sm text-slate-600">Remaining balance</p>
                 <p className="mt-2 text-3xl font-extrabold text-yellow-700">
-                  {formatMoney(stats.remainingBalance)}
+                  <Money amountUSD={stats.remainingBalance} />
                 </p>
               </div>
             </div>
@@ -359,19 +357,18 @@ export default function StudentDashboardClient({
 
                         <div className="flex flex-wrap gap-3">
                           <div className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                            Rate: {formatMoney(item.tutor.hourlyRate)}/hr
+                            Rate: <Money amountUSD={item.tutor.hourlyRate} suffix="/hr" />
                           </div>
 
                           <div className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                            Billed: {formatMoney(item.accumulatedTotal)}
-                          </div>
+Billed: <Money amountUSD={item.accumulatedTotal} />                          </div>
 
                           <div className="rounded-xl bg-green-50 px-4 py-2 text-sm font-bold text-green-700">
-                            Paid: {formatMoney(amountPaid)}
+                            Paid: <Money amountUSD={amountPaid} />
                           </div>
 
                           <div className="rounded-xl bg-yellow-50 px-4 py-2 text-sm font-bold text-yellow-700">
-                            Remaining: {formatMoney(remaining)}
+                            Remaining: <Money amountUSD={remaining} />
                           </div>
                         </div>
                       </div>
@@ -409,7 +406,7 @@ export default function StudentDashboardClient({
                 <p className="text-sm text-slate-600">Average session cost</p>
 
                 <p className="mt-2 text-3xl font-extrabold text-slate-950">
-                  {formatMoney(averageSessionCost)}
+                  <Money amountUSD={averageSessionCost} />
                 </p>
               </div>
             </div>

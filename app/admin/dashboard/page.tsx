@@ -4,15 +4,11 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Money } from "@/components/CurrencyProvider";
 
 function formatDate(date?: Date | null) {
   if (!date) return "N/A";
   return new Date(date).toLocaleString();
-}
-
-function money(value: any) {
-  if (value === null || value === undefined) return "$0.00";
-  return `$${Number(value).toFixed(2)}`;
 }
 
 function jsonList(value: any) {
@@ -594,8 +590,15 @@ export default async function AdminDashboardPage() {
         <Stat title="OAuth Accounts" value={accounts.length} />
         <Stat title="Login Sessions" value={loginSessions.length} />
         <Stat title="Verification Tokens" value={verificationTokens.length} />
-        <Stat title="Session Revenue" value={money(totalSessionRevenue)} />
-        <Stat title="Payments Confirmed" value={money(totalPaymentsConfirmed)} />
+<Stat
+  title="Session Revenue"
+  value={<Money amountUSD={totalSessionRevenue} />}
+/>
+
+<Stat
+  title="Payments Confirmed"
+  value={<Money amountUSD={totalPaymentsConfirmed} />}
+/>
       </section>
 
       <Section title="All Users — View / Edit / Delete">
@@ -963,11 +966,19 @@ export default async function AdminDashboardPage() {
   );
 }
 
-function Stat({ title, value }: { title: string; value: any }) {
+function Stat({
+  title,
+  value,
+}: {
+  title: string;
+  value: React.ReactNode;
+}) {
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-sm">
       <p className="text-sm font-medium text-slate-500">{title}</p>
-      <p className="mt-2 text-3xl font-bold text-slate-900">{value}</p>
+      <p className="mt-2 text-3xl font-bold text-slate-900">
+        {value}
+      </p>
     </div>
   );
 }

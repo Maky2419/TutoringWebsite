@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import TutorScheduleManager from "./TutorScheduleManager";
 import TutorCalendar from "./TutorCalendar";
+import { Money } from "@/components/CurrencyProvider";
 
 type Student = {
   id: string;
@@ -84,10 +85,6 @@ type Props = {
   };
 };
 
-function formatMoney(value: number | string) {
-  return `$${Number(value || 0).toFixed(2)} USD`;
-}
-
 function formatDate(dateValue: Date | string) {
   return new Date(dateValue).toLocaleDateString(undefined, {
     weekday: "short",
@@ -137,7 +134,7 @@ function StatCard({
   subtext,
 }: {
   title: string;
-  value: string;
+  value: ReactNode;
   subtext: string;
 }) {
   return (
@@ -264,19 +261,44 @@ export default function TutorDashboardClient({
               </p>
               <p className="text-sm text-slate-600">{tutor.email}</p>
               <p className="mt-2 text-sm font-bold text-green-600">
-                {formatMoney(tutor.hourlyRate)}/hr · {tutor.category}
+                <Money amountUSD={tutor.hourlyRate} suffix="/hr" /> ·{" "}
+                {tutor.category}
               </p>
             </div>
           </div>
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-          <StatCard title="Today’s Sessions" value={String(stats.todaysSessions)} subtext="Lessons scheduled for today" />
-          <StatCard title="Active Students" value={String(stats.totalStudents)} subtext="Students assigned to you" />
-          <StatCard title="Total Sessions" value={String(stats.totalSessions)} subtext="Active sessions recorded" />
-          <StatCard title="Cancelled" value={String(cancelledSessions.length)} subtext="Sessions cancelled" />
-          <StatCard title="Confirmed Paid" value={formatMoney(stats.totalConfirmedPaid || 0)} subtext="Transfers confirmed" />
-          <StatCard title="Total Earnings" value={formatMoney(stats.totalEarnings)} subtext="Running revenue" />
+          <StatCard
+            title="Today’s Sessions"
+            value={String(stats.todaysSessions)}
+            subtext="Lessons scheduled for today"
+          />
+          <StatCard
+            title="Active Students"
+            value={String(stats.totalStudents)}
+            subtext="Students assigned to you"
+          />
+          <StatCard
+            title="Total Sessions"
+            value={String(stats.totalSessions)}
+            subtext="Active sessions recorded"
+          />
+          <StatCard
+            title="Cancelled"
+            value={String(cancelledSessions.length)}
+            subtext="Sessions cancelled"
+          />
+          <StatCard
+            title="Confirmed Paid"
+            value={<Money amountUSD={stats.totalConfirmedPaid || 0} />}
+            subtext="Transfers confirmed"
+          />
+          <StatCard
+            title="Total Earnings"
+            value={<Money amountUSD={stats.totalEarnings} />}
+            subtext="Running revenue"
+          />
         </div>
 
         <div className="mt-8">
@@ -300,8 +322,13 @@ export default function TutorDashboardClient({
                 >
                   <option value="">Choose a student</option>
                   {assignedStudents.map((assignment) => (
-                    <option key={assignment.student.id} value={assignment.student.id}>
-                      {assignment.student.name || assignment.student.email || "Student"}
+                    <option
+                      key={assignment.student.id}
+                      value={assignment.student.id}
+                    >
+                      {assignment.student.name ||
+                        assignment.student.email ||
+                        "Student"}
                     </option>
                   ))}
                 </select>
@@ -321,13 +348,14 @@ export default function TutorDashboardClient({
                   {allSessions
                     .filter(
                       (session) =>
-                        !selectedStudentId || session.studentId === selectedStudentId
+                        !selectedStudentId ||
+                        session.studentId === selectedStudentId
                     )
                     .map((session) => (
                       <option key={session.id} value={session.id}>
                         {session.studentName || "Student"} —{" "}
-                        {formatDate(session.lessonDate)} —{" "}
-                        {formatMoney(session.amount)}
+                        {formatDate(session.lessonDate)} — $
+                        {Number(session.amount || 0).toFixed(2)} USD
                       </option>
                     ))}
                 </select>
@@ -401,7 +429,7 @@ export default function TutorDashboardClient({
                       </div>
 
                       <div className="rounded-xl bg-green-50 px-4 py-2 text-sm font-bold text-green-700">
-                        {formatMoney(session.amount)}
+                        <Money amountUSD={session.amount} />
                       </div>
                     </div>
 
@@ -447,7 +475,8 @@ export default function TutorDashboardClient({
                     </div>
 
                     <p className="mt-3 text-sm font-bold text-green-600">
-                      Total billed: {formatMoney(assignment.accumulatedTotal)}
+                      Total billed:{" "}
+                      <Money amountUSD={assignment.accumulatedTotal} />
                     </p>
                   </div>
                 ))
@@ -519,24 +548,44 @@ export default function TutorDashboardClient({
                 {[
                   [
                     "Average revenue per student",
-                    assignedStudents.length > 0
-                      ? formatMoney(stats.totalEarnings / assignedStudents.length)
-                      : formatMoney(0),
+                    <Money
+                      key="avg-student"
+                      amountUSD={
+                        assignedStudents.length > 0
+                          ? stats.totalEarnings / assignedStudents.length
+                          : 0
+                      }
+                    />,
                   ],
                   [
                     "Average revenue per active session",
-                    stats.totalSessions > 0
-                      ? formatMoney(stats.totalEarnings / stats.totalSessions)
-                      : formatMoney(0),
+                    <Money
+                      key="avg-session"
+                      amountUSD={
+                        stats.totalSessions > 0
+                          ? stats.totalEarnings / stats.totalSessions
+                          : 0
+                      }
+                    />,
                   ],
-                  ["Hourly rate", formatMoney(tutor.hourlyRate)],
+                  [
+                    "Hourly rate",
+                    <Money
+                      key="hourly-rate"
+                      amountUSD={tutor.hourlyRate}
+                      suffix="/hr"
+                    />,
+                  ],
                   [
                     "Pending unconfirmed payment",
-                    formatMoney(stats.pendingPaymentAmount || 0),
+                    <Money
+                      key="pending-payment"
+                      amountUSD={stats.pendingPaymentAmount || 0}
+                    />,
                   ],
                 ].map(([label, value]) => (
                   <div
-                    key={label}
+                    key={String(label)}
                     className="rounded-2xl border border-blue-100 bg-slate-50 p-4"
                   >
                     <p className="text-sm text-slate-600">{label}</p>
@@ -574,7 +623,7 @@ export default function TutorDashboardClient({
                         </div>
 
                         <div className="rounded-xl bg-green-50 px-3 py-2 text-sm font-bold text-green-700">
-                          {formatMoney(payment.amountPaid)}
+                          <Money amountUSD={payment.amountPaid} />
                         </div>
                       </div>
 

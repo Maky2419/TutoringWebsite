@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Money } from "@/components/CurrencyProvider";
 
 type StudentSession = {
   id: number;
@@ -11,10 +12,6 @@ type StudentSession = {
   amount: string | number;
   status?: string;
 };
-
-function formatMoney(value: number | string) {
-  return `$${Number(value || 0).toFixed(2)} USD`;
-}
 
 export default function StudentScheduleView({
   sessions,
@@ -112,7 +109,7 @@ export default function StudentScheduleView({
                   </p>
 
                   <p className="mt-3 text-3xl font-extrabold text-green-600">
-                    {formatMoney(session.amount)}
+                    <Money amountUSD={session.amount} />
                   </p>
                 </div>
 
@@ -146,7 +143,7 @@ export default function StudentScheduleView({
             onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
             className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
           >
-            Next 
+            Next
           </button>
         </div>
 
@@ -190,7 +187,7 @@ export default function StudentScheduleView({
                           </p>
 
                           <p className="mt-1 text-[10px] font-bold text-white">
-                            {formatMoney(session.amount)}
+                            <Money amountUSD={session.amount} />
                           </p>
                         </div>
                       ))}
