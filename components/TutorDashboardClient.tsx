@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import TutorScheduleManager from "./TutorScheduleManager";
 import TutorCalendar from "./TutorCalendar";
 import { Money } from "@/components/CurrencyProvider";
+import { generateInvoice } from "@/lib/generateInvoice";
 
 type Student = {
   id: string;
@@ -164,6 +165,59 @@ export default function TutorDashboardClient({
   const [amountPaid, setAmountPaid] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
 
+  const [invoiceStudentId, setInvoiceStudentId] = useState("");
+
+  function downloadStudentInvoice() {
+    if (!invoiceStudentId) {
+      alert("Please select a student first.");
+      return;
+    }
+
+    const assignment = assignedStudents.find(
+      (item) => item.student.id === invoiceStudentId
+    );
+
+    if (!assignment) {
+      alert("Student not found.");
+      return;
+    }
+
+    const activeSessions = assignment.sessions
+      .filter((session) => session.status !== "cancelled")
+      .sort(
+        (a, b) =>
+          new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
+      );
+
+    if (activeSessions.length === 0) {
+      alert("This student has no active sessions to include in the invoice.");
+      return;
+    }
+
+    const confirmedPaid = paymentConfirmations
+      .filter(
+        (payment) =>
+          payment.studentId === invoiceStudentId && payment.confirmed !== false
+      )
+      .reduce((sum, payment) => sum + Number(payment.amountPaid || 0), 0);
+
+    generateInvoice({
+      studentName:
+        assignment.student.name || assignment.student.email || "Student",
+      tutorName: tutor.name || "Tutor",
+      subject: tutor.category || "Tutoring",
+      sessions: activeSessions.map((session) => ({
+        lessonDate: session.lessonDate,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        notes: session.notes,
+        amount: session.amount,
+        durationHours: session.durationHours,
+      })),
+      amountPaid: confirmedPaid,
+    });
+  }
+
   async function confirmManualPayment() {
     if (!selectedStudentId || !amountPaid) {
       alert("Please select a student and enter the amount paid.");
@@ -301,7 +355,45 @@ export default function TutorDashboardClient({
           />
         </div>
 
-        <div className="mt-8">
+        <div className="mt-8 grid gap-5 xl:grid-cols-2">
+          <SectionCard
+            title="Generate Student Invoice"
+            subtitle="Select a student and download the same invoice shown on the student dashboard."
+          >
+            <div className="grid gap-4">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Select student
+                </label>
+
+                <select
+                  value={invoiceStudentId}
+                  onChange={(e) => setInvoiceStudentId(e.target.value)}
+                  className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="">Choose a student</option>
+                  {assignedStudents.map((assignment) => (
+                    <option
+                      key={assignment.student.id}
+                      value={assignment.student.id}
+                    >
+                      {assignment.student.name ||
+                        assignment.student.email ||
+                        "Student"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={downloadStudentInvoice}
+                className="rounded-2xl bg-blue-600 px-5 py-3 font-bold text-white transition hover:bg-blue-700"
+              >
+                Download Invoice
+              </button>
+            </div>
+          </SectionCard>
+
           <SectionCard
             title="Manual Payment Confirmation"
             subtitle="Record how much a student has paid you by bank transfer."
