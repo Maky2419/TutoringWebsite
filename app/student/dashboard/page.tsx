@@ -11,7 +11,7 @@ export default async function StudentDashboardPage() {
   if ((session.user as any).role !== "STUDENT") redirect("/dashboard");
 
   const userId = (session.user as any).id;
-  const userEmail = session.user.email || "";
+  const userEmail = session?.user?.email || "";
 
   const [rawAssignments, rawBookings, rawPayments] = await Promise.all([
     prisma.studentTutorAssignment.findMany({
@@ -110,8 +110,8 @@ export default async function StudentDashboardPage() {
   const allSessions = assignments.flatMap((assignment) =>
     assignment.sessions.map((s) => ({
       ...s,
-      studentName: assignment.student?.name || session.user.name || "Student",
-      studentEmail: assignment.student?.email || session.user.email || "",
+      studentName: assignment.student?.name || session?.user?.name || "Student",
+      studentEmail: assignment.student?.email || session?.user?.email || "",
       tutorName: assignment.tutor.name,
       tutorEmail: assignment.tutor.email,
       tutorRate: assignment.tutor.hourlyRate,
@@ -155,7 +155,7 @@ export default async function StudentDashboardPage() {
 
   return (
     <StudentDashboardClient
-      userName={session.user.name || "Student"}
+      userName={session?.user?.name || "Student"}
       assignments={assignments}
       bookings={bookings}
       allSessions={allSessions}

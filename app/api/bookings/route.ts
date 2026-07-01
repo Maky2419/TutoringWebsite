@@ -20,8 +20,8 @@ const session = await getServerSession(authOptions);
     const message = body.message ? String(body.message).trim() : "";
 
     const studentUserId = (session.user as any).id;
-    const studentName = String(session.user.name || "Student").trim();
-    const studentEmail = String(session.user.email || "").trim();
+    const studentName = String(session?.user?.name || "Student").trim();
+    const studentEmail = String(session?.user?.email || "").trim();
 
     if (!tutorId || Number.isNaN(tutorId)) {
       return NextResponse.json({ error: "tutorId is required" }, { status: 400 });

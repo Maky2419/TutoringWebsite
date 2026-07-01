@@ -54,10 +54,17 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const passwordMatches = await bcrypt.compare(
-    currentPassword,
-    user.password
+ if (!user.password) {
+  return NextResponse.json(
+    { error: "No password is set for this account." },
+    { status: 400 }
   );
+}
+
+const passwordMatches = await bcrypt.compare(
+  currentPassword,
+  user.password
+);
 
   if (!passwordMatches) {
     return NextResponse.json(

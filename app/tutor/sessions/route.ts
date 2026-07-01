@@ -24,7 +24,7 @@ async function getTutorForSession() {
 
   return prisma.tutor.findFirst({
     where: {
-      OR: [{ userId }, { email: session.user.email || "" }],
+      OR: [{ userId }, { email: session?.user?.email || "" }],
     },
   });
 }

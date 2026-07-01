@@ -930,7 +930,7 @@ export default async function AdminDashboardPage() {
         <Table headers={["User", "Session Token", "Expires", "Delete"]}>
           {loginSessions.map((session) => (
             <tr key={session.sessionToken} className="border-t align-top">
-              <Td>{session.user.email || "N/A"}</Td>
+              <Td>{session?.user?.email || "N/A"}</Td>
               <Td>{session.sessionToken}</Td>
               <Td>{formatDate(session.expires)}</Td>
               <Td>

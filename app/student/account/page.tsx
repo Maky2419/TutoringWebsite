@@ -17,8 +17,8 @@ export default async function StudentAccountPage() {
   return (
     <StudentAccountClient
       initialUser={{
-        name: session.user.name || "",
-        email: session.user.email || "",
+        name: session?.user?.name || "",
+        email: session?.user?.email || "",
         role: "Student",
       }}
     />

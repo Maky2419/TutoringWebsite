@@ -30,7 +30,7 @@ export async function PATCH(
   const existingBooking = await prisma.booking.findFirst({
     where: {
       id: bookingId,
-      OR: [{ studentUserId: userId }, { studentEmail: session.user.email }],
+      OR: [{ studentUserId: userId }, { studentEmail: session?.user?.email }],
     },
   });
 

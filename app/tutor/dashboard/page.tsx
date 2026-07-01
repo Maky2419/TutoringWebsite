@@ -14,7 +14,7 @@ export default async function TutorDashboardPage() {
 
   const tutor = await prisma.tutor.findFirst({
     where: {
-      OR: [{ userId }, { email: session.user.email || "" }],
+      OR: [{ userId }, { email: session?.user?.email || "" }],
     },
     include: {
       assignedStudents: {
@@ -172,7 +172,7 @@ export default async function TutorDashboardPage() {
         hourlyRate: tutor.hourlyRate,
         category: tutor.category,
       }}
-      userName={session.user.name || tutor.name}
+      userName={session?.user?.name || tutor.name}
       assignedStudents={assignedStudents}
       bookings={bookings}
       allSessions={allSessions}
