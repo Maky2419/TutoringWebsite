@@ -60,6 +60,7 @@ export default function TutorAccountClient({
   const [student, setStudent] = useState("");
   const [rating, setRating] = useState("5");
   const [comment, setComment] = useState("");
+  const [reviewDate, setReviewDate] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -202,6 +203,7 @@ export default function TutorAccountClient({
           student,
           rating: Number(rating),
           comment,
+          createdAt: reviewDate || undefined,
         }),
       });
 
@@ -225,6 +227,7 @@ export default function TutorAccountClient({
       setStudent("");
       setRating("5");
       setComment("");
+      setReviewDate("");
       setReviewState("saved");
       setReviewMessage("Review added successfully.");
     } catch (error: any) {
@@ -552,6 +555,19 @@ export default function TutorAccountClient({
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Review Date
+                  </label>
+
+                  <input
+                    type="date"
+                    value={reviewDate}
+                    onChange={(e) => setReviewDate(e.target.value)}
+                    className="w-full rounded-2xl border border-blue-100 bg-white px-4 py-3 text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
                 </div>
 
                 <div>
