@@ -1,3 +1,4 @@
+import { DUBAI_TIME_ZONE, sessionTimeData, sessionInstants, zonedParts } from "@/lib/sessionTime";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -299,11 +300,14 @@ async function updateTeachingSessionAction(formData: FormData) {
   await prisma.teachingSession.update({
     where: { id: Number(formData.get("id")) },
     data: {
-      lessonDate: new Date(String(formData.get("lessonDate"))),
-      startTime: String(formData.get("startTime") || ""),
-      endTime: String(formData.get("endTime") || ""),
+      ...sessionTimeData({
+        lessonDate: String(formData.get("lessonDate") || ""),
+        endDate: String(formData.get("endDate") || ""),
+        startTime: String(formData.get("startTime") || ""),
+        endTime: String(formData.get("endTime") || ""),
+        timeZone: DUBAI_TIME_ZONE,
+      }),
       notes: String(formData.get("notes") || ""),
-      durationHours: String(formData.get("durationHours") || "0"),
       amount: String(formData.get("amount") || "0"),
       status: String(formData.get("status") || "scheduled"),
     },
@@ -783,19 +787,14 @@ export default async function AdminDashboardPage() {
 
                 <div className="grid gap-4 md:grid-cols-4">
                   <Field
-                    label="Lesson Date"
+                    label="Start date (Dubai UTC+4)"
                     name="lessonDate"
-                    type="datetime-local"
-                    defaultValue={new Date(lesson.lessonDate).toISOString().slice(0, 16)}
+                    type="date"
+                    defaultValue={zonedParts(sessionInstants(lesson).start).date}
                   />
-                  <Field label="Start Time" name="startTime" defaultValue={lesson.startTime} />
-                  <Field label="End Time" name="endTime" defaultValue={lesson.endTime} />
-                  <Field
-                    label="Duration Hours"
-                    name="durationHours"
-                    type="number"
-                    defaultValue={String(lesson.durationHours)}
-                  />
+                  <Field label="Start time (Dubai)" name="startTime" type="time" defaultValue={zonedParts(sessionInstants(lesson).start).time} />
+                  <Field label="End time (Dubai)" name="endTime" type="time" defaultValue={zonedParts(sessionInstants(lesson).end).time} />
+                  <Field label="End date (Dubai)" name="endDate" type="date" defaultValue={zonedParts(sessionInstants(lesson).end).date} />
                   <Field
                     label="Amount"
                     name="amount"

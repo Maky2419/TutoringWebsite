@@ -1,4 +1,7 @@
 "use client";
+import SessionTimeDisplay from "./SessionTimeDisplay";
+import { TimeZoneSelector } from "./TimeZoneProvider";
+import { sessionInstants } from "@/lib/sessionTime";
 import Link from "next/link";
 
 import { useMemo } from "react";
@@ -26,6 +29,9 @@ type Booking = {
 type TeachingSession = {
   id: number;
   lessonDate: Date | string;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
   startTime: string;
   endTime: string;
   notes: string | null;
@@ -49,7 +55,10 @@ type Assignment = {
   sessions: {
     id: number;
     lessonDate: Date | string;
-    startTime: string;
+    startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
+  startTime: string;
     endTime: string;
     notes: string | null;
     durationHours: string | number;
@@ -170,6 +179,7 @@ export default function StudentDashboardClient({
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
+        <TimeZoneSelector />
         <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-5 sm:p-7 md:p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -208,8 +218,7 @@ export default function StudentDashboardClient({
                   </p>
 
                   <p className="text-sm text-slate-600">
-                    {formatDate(nextSession.lessonDate)} ·{" "}
-                    {nextSession.startTime} - {nextSession.endTime}
+                    <SessionTimeDisplay session={nextSession} />
                   </p>
 
                   <p className="mt-2 text-sm font-bold text-green-600">

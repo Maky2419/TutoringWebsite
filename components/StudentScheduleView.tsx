@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import SessionTimeDisplay from "./SessionTimeDisplay";
+import { useTimeZone } from "./TimeZoneProvider";
+import { sessionDateKey, sessionInstants, zonedParts } from "@/lib/sessionTime";
+import { useEffect, useMemo, useState } from "react";
 import { Money } from "@/components/CurrencyProvider";
 
 type StudentSession = {
   id: number;
   lessonDate: string | Date;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
   startTime: string;
   endTime: string;
   tutorName: string;
@@ -18,13 +24,18 @@ export default function StudentScheduleView({
 }: {
   sessions: StudentSession[];
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const { timeZone, ready } = useTimeZone();
+  const [currentDate, setCurrentDate] = useState(new Date(2000, 0, 1));
+  useEffect(() => {
+    const [y, m] = zonedParts(new Date(), timeZone).date.split("-").map(Number);
+    setCurrentDate(new Date(y, m - 1, 1));
+  }, [timeZone]);
 
   const activeSessions = sessions
     .filter((session) => session.status !== "cancelled")
     .sort(
       (a, b) =>
-        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
+        sessionInstants(a).start.getTime() - sessionInstants(b).start.getTime()
     );
 
   const year = currentDate.getFullYear();
@@ -47,13 +58,8 @@ export default function StudentScheduleView({
 
   function sessionsForDay(day: number) {
     return activeSessions.filter((session) => {
-      const d = new Date(session.lessonDate);
-
-      return (
-        d.getFullYear() === year &&
-        d.getMonth() === month &&
-        d.getDate() === day
-      );
+      const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      return sessionDateKey(session, timeZone) === key;
     });
   }
 
@@ -74,6 +80,8 @@ export default function StudentScheduleView({
 
     window.location.reload();
   }
+
+  if (!ready) return <p>Detecting your time zone…</p>;
 
   return (
     <div className="space-y-8">
@@ -96,16 +104,7 @@ export default function StudentScheduleView({
                   </p>
 
                   <p className="mt-2 text-lg text-slate-600">
-                    {new Date(session.lessonDate).toLocaleDateString(
-                      undefined,
-                      {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      }
-                    )}{" "}
-                    · {session.startTime} - {session.endTime}
+                    <SessionTimeDisplay session={session} />
                   </p>
 
                   <p className="mt-3 text-3xl font-extrabold text-green-600">
@@ -183,7 +182,7 @@ export default function StudentScheduleView({
                           </p>
 
                           <p className="text-[10px] font-semibold text-white/90">
-                            {session.startTime} - {session.endTime}
+                            <SessionTimeDisplay session={session} />
                           </p>
 
                           <p className="mt-1 text-[10px] font-bold text-white">

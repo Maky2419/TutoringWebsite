@@ -1,6 +1,10 @@
 "use client";
+import SessionTimeDisplay from "./SessionTimeDisplay";
+import { TimeZoneSelector, useTimeZone } from "./TimeZoneProvider";
+import { addCalendarDays, sessionInstants, sessionTimeData, zonedParts } from "@/lib/sessionTime";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Money } from "@/components/CurrencyProvider";
 
 type Student = {
@@ -18,6 +22,9 @@ type AssignedStudent = {
 type TeachingSession = {
   id: number;
   lessonDate: string;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
   startTime: string;
   endTime: string;
   notes: string | null;
@@ -36,18 +43,6 @@ type AssignmentResponse = {
   hourlyRate: number;
 };
 
-function prettyDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function inputDate(value: string) {
-  return new Date(value).toISOString().split("T")[0];
-}
-
 function addOneHour(time: string) {
   if (!time) return "";
 
@@ -58,20 +53,10 @@ function addOneHour(time: string) {
   return `${String(nextHour).padStart(2, "0")}:${minuteString}`;
 }
 
-function addDays(dateString: string, days: number) {
-  const [year, month, day] = dateString.split("-").map(Number);
-
-  const date = new Date(year, month - 1, day);
-  date.setDate(date.getDate() + days);
-
-  const newYear = date.getFullYear();
-  const newMonth = String(date.getMonth() + 1).padStart(2, "0");
-  const newDay = String(date.getDate()).padStart(2, "0");
-
-  return `${newYear}-${newMonth}-${newDay}`;
-}
-
 export default function TutorScheduleManager() {
+  const { timeZone, ready } = useTimeZone();
+  const router = useRouter();
+  const [error, setError] = useState("");
   const [students, setStudents] = useState<Student[]>([]);
   const [assigned, setAssigned] = useState<AssignedStudent[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -85,6 +70,7 @@ export default function TutorScheduleManager() {
   const [form, setForm] = useState({
     sessionId: "",
     lessonDate: "",
+    endDate: "",
     startTime: "",
     endTime: "",
     notes: "",
@@ -98,7 +84,23 @@ export default function TutorScheduleManager() {
     );
   }, [assigned, students, selectedStudentId]);
 
-  const sessions = scheduleData?.assignment.sessions || [];
+  const sessions = [...(scheduleData?.assignment.sessions || [])].sort(
+    (a, b) => sessionInstants(a).start.getTime() - sessionInstants(b).start.getTime()
+  );
+  const preview = useMemo(() => {
+    if (!ready || !form.lessonDate || !form.startTime || !form.endTime) return null;
+    try {
+      return { session: sessionTimeData({ ...form, timeZone }), error: "" };
+    } catch (error) {
+      return { session: null, error: error instanceof Error ? error.message : "Invalid time" };
+    }
+  }, [form, timeZone, ready]);
+  // Avoid reinterpreting a half-edited form when the user changes display zone.
+  useEffect(() => {
+    setForm({ sessionId: "", lessonDate: "", endDate: "", startTime: "", endTime: "", notes: "" });
+    setRepeatFourWeeks(false);
+    setError("");
+  }, [timeZone]);
 
   const activeSessions = sessions.filter(
     (session) => session.status !== "cancelled"
@@ -166,49 +168,29 @@ export default function TutorScheduleManager() {
 
     if (!selectedStudentId) return;
 
+    if (!ready || saving) return;
     setSaving(true);
-
+    setError("");
     const isEditing = Boolean(form.sessionId);
-
-    const lessonDates =
-      repeatFourWeeks && !isEditing
-        ? [
-            form.lessonDate,
-            addDays(form.lessonDate, 7),
-            addDays(form.lessonDate, 14),
-            addDays(form.lessonDate, 21),
-          ]
-        : [form.lessonDate];
-
-    for (const lessonDate of lessonDates) {
-      await fetch("/api/tutor/sessions", {
+    try {
+      const res = await fetch("/api/tutor/sessions", {
         method: isEditing ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           studentId: selectedStudentId,
-          sessionId: isEditing ? Number(form.sessionId) : undefined,
-          lessonDate,
-          startTime: form.startTime,
-          endTime: form.endTime,
-          notes: form.notes,
+          ...form, sessionId: isEditing ? Number(form.sessionId) : undefined,
+          timeZone, repeatFourWeeks: repeatFourWeeks && !isEditing,
         }),
       });
-    }
-
-    setForm({
-      sessionId: "",
-      lessonDate: "",
-      startTime: "",
-      endTime: "",
-      notes: "",
-    });
-
-    setRepeatFourWeeks(false);
-
-    await loadSchedule(selectedStudentId);
-    setSaving(false);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save lesson.");
+      setForm({ sessionId: "", lessonDate: "", endDate: "", startTime: "", endTime: "", notes: "" });
+      setRepeatFourWeeks(false);
+      await loadSchedule(selectedStudentId);
+      router.refresh();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to save lesson.");
+    } finally { setSaving(false); }
   }
 
   function editSession(session: TeachingSession) {
@@ -216,11 +198,15 @@ export default function TutorScheduleManager() {
 
     setRepeatFourWeeks(false);
 
+    const { start, end } = sessionInstants(session);
+    const localStart = zonedParts(start, timeZone);
+    const localEnd = zonedParts(end, timeZone);
     setForm({
       sessionId: String(session.id),
-      lessonDate: inputDate(session.lessonDate),
-      startTime: session.startTime,
-      endTime: session.endTime,
+      lessonDate: localStart.date,
+      endDate: localEnd.date,
+      startTime: localStart.time,
+      endTime: localEnd.time,
       notes: session.notes || "",
     });
   }
@@ -235,10 +221,12 @@ export default function TutorScheduleManager() {
     });
 
     await loadSchedule(selectedStudentId);
+    router.refresh();
   }
 
   return (
     <div>
+      <TimeZoneSelector disabled={saving} />
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-slate-950">
@@ -360,12 +348,16 @@ export default function TutorScheduleManager() {
                 {form.sessionId ? "Edit lesson" : "Add lesson"}
               </h3>
 
-              <div className="mt-4 space-y-3">
+              <p className="mt-2 text-sm text-slate-600">Enter lesson times in {timeZone.replace(/_/g, " ")}. Changing the time zone clears this form.</p>
+              {error && <p role="alert" className="mt-3 text-sm font-semibold text-red-700">{error}</p>}
+              <fieldset disabled={!ready || saving} className="mt-4 space-y-3">
+                <label className="block text-xs font-bold text-slate-500" htmlFor="lesson-date">Start date</label>
                 <input
+                  id="lesson-date"
                   type="date"
                   value={form.lessonDate}
                   onChange={(e) =>
-                    setForm({ ...form, lessonDate: e.target.value })
+                    setForm({ ...form, lessonDate: e.target.value, endDate: e.target.value })
                   }
                   className="w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   required
@@ -387,6 +379,7 @@ export default function TutorScheduleManager() {
                           ...form,
                           startTime,
                           endTime: addOneHour(startTime),
+                          endDate: form.lessonDate ? (startTime >= "23:00" ? addCalendarDays(form.lessonDate, 1) : form.lessonDate) : "",
                         });
                       }}
                       className="w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
@@ -409,6 +402,13 @@ export default function TutorScheduleManager() {
                   </div>
                 </div>
 
+                <label className="block text-xs font-bold text-slate-500">End date (choose next day for overnight lessons)
+                  <input type="date" required min={form.lessonDate} value={form.endDate || form.lessonDate}
+                    onChange={e => setForm({ ...form, endDate: e.target.value })}
+                    className="mt-1 w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950" />
+                </label>
+                {preview?.session && <div className="rounded-xl bg-blue-50 p-3 text-sm text-blue-900"><SessionTimeDisplay session={preview.session} /></div>}
+                {preview?.error && <p role="alert" className="text-sm text-red-700">{preview.error}</p>}
                 {!form.sessionId && (
                   <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
                     <label className="flex cursor-pointer items-start gap-3">
@@ -421,7 +421,7 @@ export default function TutorScheduleManager() {
 
                       <div>
                         <p className="text-sm font-bold text-slate-950">
-                          Repeat weekly for 4 weeks
+                          Repeat weekly for 4 weeks (same local time)
                         </p>
                       </div>
                     </label>
@@ -444,7 +444,7 @@ export default function TutorScheduleManager() {
                       saving ||
                       !form.lessonDate ||
                       !form.startTime ||
-                      !form.endTime
+                      !form.endTime || !ready || !!preview?.error
                     }
                     className="flex-1 rounded-xl bg-green-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -464,6 +464,7 @@ export default function TutorScheduleManager() {
                         setForm({
                           sessionId: "",
                           lessonDate: "",
+                          endDate: "",
                           startTime: "",
                           endTime: "",
                           notes: "",
@@ -475,7 +476,7 @@ export default function TutorScheduleManager() {
                     </button>
                   )}
                 </div>
-              </div>
+              </fieldset>
             </form>
 
             <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
@@ -526,12 +527,10 @@ export default function TutorScheduleManager() {
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                           <div className="min-w-0">
                             <p className="text-sm font-bold text-slate-950">
-                              {prettyDate(session.lessonDate)}
+                              <SessionTimeDisplay session={session} />
                             </p>
 
-                            <p className="mt-0.5 text-xs text-slate-600">
-                              {session.startTime} - {session.endTime}
-                            </p>
+
 
                             {session.notes && (
                               <p className="mt-2 text-xs text-slate-500">

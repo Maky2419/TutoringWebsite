@@ -1,7 +1,13 @@
+import { DUBAI_TIME_ZONE, sessionInstants, zonedParts } from "./sessionTime";
 import jsPDF from "jspdf";
 
 type InvoiceSession = {
+  id?: number;
+  status?: string;
   lessonDate: Date | string;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
   startTime: string;
   endTime: string;
   notes: string | null;
@@ -17,8 +23,67 @@ type InvoiceData = {
   amountPaid?: number;
 };
 
+/**
+ * Apply payments to the oldest sessions first.
+ * Fully paid sessions are excluded.
+ * Partially paid sessions retain only their outstanding balance.
+ *
+ * This does not modify the database.
+ */
+export function getUnpaidInvoiceSessions(
+  sessions: InvoiceSession[],
+  amountPaid = 0
+) {
+  const toCents = (value: number | string) => {
+    const amount = Number(value);
+
+    if (!Number.isFinite(amount) || amount < 0) {
+      throw new Error(
+        "Invoice amounts must be valid non-negative numbers."
+      );
+    }
+
+    return Math.round((amount + Number.EPSILON) * 100);
+  };
+
+  let paymentCents = toCents(amountPaid);
+
+  const ordered = sessions
+    .filter((session) => session.status !== "cancelled")
+    .slice()
+    .sort(
+      (a, b) =>
+        sessionInstants(a).start.getTime() -
+          sessionInstants(b).start.getTime() ||
+        (a.id ?? 0) - (b.id ?? 0)
+    );
+
+  return ordered.flatMap((session) => {
+    const chargeCents = toCents(session.amount);
+    const paidCents = Math.min(paymentCents, chargeCents);
+
+    paymentCents -= paidCents;
+
+    const remainingCents = chargeCents - paidCents;
+
+    // Do not include fully paid or zero-cost sessions.
+    if (remainingCents === 0) return [];
+
+    return [
+      {
+        ...session,
+        originalAmount: chargeCents / 100,
+        appliedPayment: paidCents / 100,
+        remainingCents,
+        remainingAmount: remainingCents / 100,
+      },
+    ];
+  });
+}
+
 function formatDate(dateValue: Date | string) {
-  return new Date(dateValue).toLocaleDateString(undefined, {
+  return new Date(dateValue).toLocaleDateString("en-GB", {
+    timeZone: DUBAI_TIME_ZONE,
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -28,9 +93,10 @@ function formatDate(dateValue: Date | string) {
 function getMonthLabel(sessions: InvoiceSession[]) {
   if (sessions.length === 0) return "Current Period";
 
-  const firstDate = new Date(sessions[0].lessonDate);
+  const firstDate = sessionInstants(sessions[0]).start;
 
-  return firstDate.toLocaleDateString(undefined, {
+  return firstDate.toLocaleDateString("en-GB", {
+    timeZone: DUBAI_TIME_ZONE,
     month: "long",
     year: "numeric",
   });
@@ -40,27 +106,47 @@ export function generateInvoice({
   studentName,
   tutorName,
   subject,
-  sessions,
+  sessions: allSessions,
   amountPaid = 0,
 }: InvoiceData) {
+  const sessions = getUnpaidInvoiceSessions(
+    allSessions,
+    amountPaid
+  );
+
+  // Stop here if everything has been paid.
+  // No PDF will be generated or downloaded.
+  if (sessions.length === 0) {
+    if (typeof window !== "undefined") {
+      window.alert(
+        "There are no unpaid sessions to invoice. No payment is due."
+      );
+    }
+
+    return;
+  }
+
   const doc = new jsPDF();
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 18;
 
-  const subtotal = sessions.reduce(
-    (sum, session) => sum + Number(session.amount || 0),
-    0
-  );
+  // Payments have already been allocated to each session.
+  // Do not subtract amountPaid a second time.
+  const balanceDue =
+    sessions.reduce(
+      (sum, session) => sum + session.remainingCents,
+      0
+    ) / 100;
 
-  const balanceDue = Math.max(subtotal - amountPaid, 0);
-
-  const issueDate = new Date().toLocaleDateString(undefined, {
+  const issueDate = new Date().toLocaleDateString("en-GB", {
+    timeZone: DUBAI_TIME_ZONE,
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 
+  // INVOICE HEADER
   doc.setFillColor(35, 37, 84);
   doc.rect(0, 0, pageWidth, 42, "F");
 
@@ -75,7 +161,9 @@ export function generateInvoice({
 
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("INVOICE", pageWidth - margin, 22, { align: "right" });
+  doc.text("INVOICE", pageWidth - margin, 22, {
+    align: "right",
+  });
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
@@ -87,9 +175,18 @@ export function generateInvoice({
 
   let y = 58;
 
+  // TUTOR AND STUDENT
   doc.setFillColor(245, 247, 252);
   doc.roundedRect(margin, y, 82, 42, 4, 4, "F");
-  doc.roundedRect(pageWidth - margin - 82, y, 82, 42, 4, 4, "F");
+  doc.roundedRect(
+    pageWidth - margin - 82,
+    y,
+    82,
+    42,
+    4,
+    4,
+    "F"
+  );
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
@@ -102,11 +199,20 @@ export function generateInvoice({
   doc.text(tutorName || "Tutor", margin + 6, y + 21);
   doc.text("K-Cubed Tutoring", margin + 6, y + 30);
 
-  doc.text(studentName || "Student", pageWidth - margin - 76, y + 21);
-  doc.text("Tutoring Client", pageWidth - margin - 76, y + 30);
+  doc.text(
+    studentName || "Student",
+    pageWidth - margin - 76,
+    y + 21
+  );
+  doc.text(
+    "Tutoring Client",
+    pageWidth - margin - 76,
+    y + 30
+  );
 
   y += 58;
 
+  // INVOICE DETAILS
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(35, 37, 84);
@@ -118,14 +224,35 @@ export function generateInvoice({
   doc.setFont("helvetica", "normal");
   doc.setTextColor(60, 60, 60);
   doc.text(`Subject: ${subject}`, margin, y);
-  doc.text(`Period: ${getMonthLabel(sessions)}`, margin, y + 8);
-  doc.text("Payment Method: Online Bank Transfer", margin, y + 16);
-  doc.text(`Number of Sessions: ${sessions.length}`, margin, y + 24);
+  doc.text(
+    `Period: ${getMonthLabel(sessions)}`,
+    margin,
+    y + 8
+  );
+  doc.text(
+    "Payment Method: Online Bank Transfer",
+    margin,
+    y + 16
+  );
+  doc.text(
+    `Unpaid Sessions: ${sessions.length} | All lesson times: Dubai (UTC+4)`,
+    margin,
+    y + 24
+  );
 
   y += 40;
 
+  // TABLE HEADER
   doc.setFillColor(35, 37, 84);
-  doc.roundedRect(margin, y, pageWidth - margin * 2, 12, 3, 3, "F");
+  doc.roundedRect(
+    margin,
+    y,
+    pageWidth - margin * 2,
+    12,
+    3,
+    3,
+    "F"
+  );
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
@@ -133,16 +260,19 @@ export function generateInvoice({
 
   doc.text("#", margin + 4, y + 8);
   doc.text("Date", margin + 16, y + 8);
-  doc.text("Time", margin + 52, y + 8);
+  doc.text("Time (Dubai)", margin + 52, y + 8);
   doc.text("Hours", margin + 91, y + 8);
   doc.text("Notes", margin + 112, y + 8);
-  doc.text("Amount", pageWidth - margin - 4, y + 8, { align: "right" });
+  doc.text("Due", pageWidth - margin - 4, y + 8, {
+    align: "right",
+  });
 
   y += 18;
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(40, 40, 40);
 
+  // ONLY UNPAID SESSIONS
   sessions.forEach((session, index) => {
     if (y > 245) {
       doc.addPage();
@@ -154,26 +284,68 @@ export function generateInvoice({
 
     if (isEven) {
       doc.setFillColor(248, 249, 253);
-      doc.rect(margin, y - 7, pageWidth - margin * 2, rowHeight, "F");
+      doc.rect(
+        margin,
+        y - 7,
+        pageWidth - margin * 2,
+        rowHeight,
+        "F"
+      );
     }
 
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
 
+    const { start, end } = sessionInstants(session);
+    const first = zonedParts(start);
+    const last = zonedParts(end);
+
     doc.text(String(index + 1), margin + 4, y);
-    doc.text(formatDate(session.lessonDate), margin + 16, y);
-    doc.text(`${session.startTime} - ${session.endTime}`, margin + 52, y);
-    doc.text(`${Number(session.durationHours).toFixed(2)}`, margin + 91, y);
+    doc.text(formatDate(start), margin + 16, y);
+    doc.text(
+      `${first.time} - ${last.time}`,
+      margin + 52,
+      y
+    );
+
+    if (first.date !== last.date) {
+      doc.setFontSize(7);
+      doc.text(
+        `Ends ${formatDate(end)}`,
+        margin + 52,
+        y + 5
+      );
+      doc.setFontSize(9);
+    }
+
+    doc.text(
+      Number(session.durationHours).toFixed(2),
+      margin + 91,
+      y
+    );
 
     const notes = session.notes || "Tutoring session";
     const clippedNotes =
-      notes.length > 24 ? `${notes.substring(0, 24)}...` : notes;
+      notes.length > 24
+        ? `${notes.substring(0, 24)}...`
+        : notes;
 
     doc.text(clippedNotes, margin + 112, y);
 
+    // Explain partial payment beneath the session notes.
+    if (session.appliedPayment > 0) {
+      doc.setFontSize(7);
+      doc.text(
+        `Paid $${session.appliedPayment.toFixed(2)} of $${session.originalAmount.toFixed(2)}`,
+        margin + 112,
+        y + 5
+      );
+      doc.setFontSize(9);
+    }
+
     doc.setFont("helvetica", "bold");
     doc.text(
-      `$${Number(session.amount || 0).toFixed(2)} USD`,
+      `$${session.remainingAmount.toFixed(2)} USD`,
       pageWidth - margin - 4,
       y,
       { align: "right" }
@@ -184,32 +356,50 @@ export function generateInvoice({
     y += rowHeight;
   });
 
+  // OUTSTANDING TOTAL
   y += 8;
 
+  if (y + 32 > 275) {
+    doc.addPage();
+    y = 25;
+  }
+
   doc.setFillColor(235, 248, 243);
-  doc.roundedRect(pageWidth - margin - 82, y, 82, 38, 4, 4, "F");
+  doc.roundedRect(
+    pageWidth - margin - 82,
+    y,
+    82,
+    24,
+    4,
+    4,
+    "F"
+  );
 
   doc.setTextColor(40, 120, 85);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-
-  doc.text("SUBTOTAL", pageWidth - margin - 76, y + 9);
-  doc.text(`$${subtotal.toFixed(2)} USD`, pageWidth - margin - 6, y + 9, {
-    align: "right",
-  });
-
-  doc.text("PAID", pageWidth - margin - 76, y + 19);
-  doc.text(`$${amountPaid.toFixed(2)} USD`, pageWidth - margin - 6, y + 19, {
-    align: "right",
-  });
-
   doc.setFontSize(11);
-  doc.text("BALANCE DUE", pageWidth - margin - 76, y + 31);
-  doc.text(`$${balanceDue.toFixed(2)} USD`, pageWidth - margin - 6, y + 31, {
-    align: "right",
-  });
+  doc.setFont("helvetica", "bold");
+  doc.text(
+    "BALANCE DUE",
+    pageWidth - margin - 76,
+    y + 14
+  );
+  doc.text(
+    `$${balanceDue.toFixed(2)} USD`,
+    pageWidth - margin - 6,
+    y + 14,
+    { align: "right" }
+  );
 
-  // PAGE 2: BANK TRANSFER DETAILS
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(90, 90, 90);
+  doc.text(
+    "Only unpaid session balances are included. Payments are applied oldest first.",
+    margin,
+    y + 31
+  );
+
+  // BANK TRANSFER DETAILS
   doc.addPage();
 
   doc.setFillColor(35, 37, 84);
@@ -222,7 +412,11 @@ export function generateInvoice({
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("Please use the details below to complete payment.", margin, 32);
+  doc.text(
+    "Please use the details below to complete payment.",
+    margin,
+    32
+  );
 
   y = 60;
 
@@ -234,18 +428,43 @@ export function generateInvoice({
   y += 12;
 
   doc.setFillColor(245, 247, 252);
-  doc.roundedRect(margin, y, pageWidth - margin * 2, 82, 4, 4, "F");
+  doc.roundedRect(
+    margin,
+    y,
+    pageWidth - margin * 2,
+    82,
+    4,
+    4,
+    "F"
+  );
 
   doc.setTextColor(50, 50, 50);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
 
+  // Replace these existing placeholders with your real bank details.
   doc.text("Bank Name: Example Bank", margin + 8, y + 12);
-  doc.text("Account Name: K-Cubed Tutoring", margin + 8, y + 24);
-  doc.text("Account Number: 1234567890", margin + 8, y + 36);
-  doc.text("Routing Number: 021000021", margin + 8, y + 48);
+  doc.text(
+    "Account Name: K-Cubed Tutoring",
+    margin + 8,
+    y + 24
+  );
+  doc.text(
+    "Account Number: 1234567890",
+    margin + 8,
+    y + 36
+  );
+  doc.text(
+    "Routing Number: 021000021",
+    margin + 8,
+    y + 48
+  );
   doc.text("SWIFT/BIC: EXAMPUS3M", margin + 8, y + 60);
-  doc.text("Reference: Please include the student name or invoice name", margin + 8, y + 72);
+  doc.text(
+    "Reference: Please include the student name or invoice name",
+    margin + 8,
+    y + 72
+  );
 
   y += 100;
 
@@ -257,12 +476,24 @@ export function generateInvoice({
   y += 12;
 
   doc.setFillColor(235, 248, 243);
-  doc.roundedRect(margin, y, pageWidth - margin * 2, 30, 4, 4, "F");
+  doc.roundedRect(
+    margin,
+    y,
+    pageWidth - margin * 2,
+    30,
+    4,
+    4,
+    "F"
+  );
 
   doc.setTextColor(40, 120, 85);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text(`Balance Due: $${balanceDue.toFixed(2)} USD`, margin + 8, y + 19);
+  doc.text(
+    `Balance Due: $${balanceDue.toFixed(2)} USD`,
+    margin + 8,
+    y + 19
+  );
 
   y += 50;
 

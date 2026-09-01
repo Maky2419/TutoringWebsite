@@ -1,3 +1,4 @@
+import { sessionInstants, sessionDateKey, zonedParts } from "@/lib/sessionTime";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -98,6 +99,9 @@ export default async function TutorDashboardPage() {
         return {
           id: s.id,
           lessonDate: s.lessonDate.toISOString(),
+          startsAt: s.startsAt?.toISOString() ?? null,
+          endsAt: s.endsAt?.toISOString() ?? null,
+          sourceTimeZone: s.sourceTimeZone,
           startTime: s.startTime,
           endTime: s.endTime,
           notes: s.notes,
@@ -135,16 +139,16 @@ export default async function TutorDashboardPage() {
   const activeSessions = allSessions.filter((s) => s.status !== "cancelled");
 
   const upcomingSessions = activeSessions
-    .filter((s) => new Date(s.lessonDate) >= now)
+    .filter((s) => sessionInstants(s).start >= now)
     .sort(
       (a, b) =>
-        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
+        sessionInstants(a).start.getTime() - sessionInstants(b).start.getTime()
     );
 
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = zonedParts(now).date;
 
   const todaysSessions = activeSessions.filter(
-    (s) => new Date(s.lessonDate).toISOString().split("T")[0] === todayStr
+    (s) => sessionDateKey(s) === todayStr
   ).length;
 
   const totalEarnings = activeSessions.reduce(

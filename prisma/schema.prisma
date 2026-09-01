@@ -107,6 +107,10 @@ model TeachingSession {
   id           Int @id @default(autoincrement())
   assignmentId Int
 
+  // UTC instants; null only for legacy rows interpreted as Dubai time.
+  startsAt      DateTime?
+  endsAt        DateTime?
+  sourceTimeZone String?
   lessonDate    DateTime
   startTime     String
   endTime       String

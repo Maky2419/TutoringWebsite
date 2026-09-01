@@ -1,3 +1,4 @@
+import { sessionInstants, sessionDateKey, zonedParts } from "@/lib/sessionTime";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -83,7 +84,10 @@ export default async function StudentDashboardPage() {
       sessions: activeSessions.map((s) => ({
         id: s.id,
         lessonDate: s.lessonDate.toISOString(),
-        startTime: s.startTime,
+        startsAt: s.startsAt?.toISOString() ?? null,
+          endsAt: s.endsAt?.toISOString() ?? null,
+          sourceTimeZone: s.sourceTimeZone,
+          startTime: s.startTime,
         endTime: s.endTime,
         notes: s.notes,
         durationHours: Number(s.durationHours),
@@ -124,10 +128,10 @@ export default async function StudentDashboardPage() {
   const now = new Date();
 
   const upcomingSessions = allSessions
-    .filter((s) => new Date(s.lessonDate) >= now)
+    .filter((s) => sessionInstants(s).start >= now)
     .sort(
       (a, b) =>
-        new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
+        sessionInstants(a).start.getTime() - sessionInstants(b).start.getTime()
     );
 
   const nextSession = upcomingSessions[0] || null;
@@ -167,7 +171,7 @@ export default async function StudentDashboardPage() {
         totalSessions: allSessions.length,
         upcomingCount: upcomingSessions.length,
         completedSessions: allSessions.filter(
-          (s) => new Date(s.lessonDate) < now
+          (s) => sessionInstants(s).end <= now
         ).length,
         assignedTutors: assignments.length,
         uniqueSubjectsCount: new Set(bookings.map((b) => b.subject)).size,

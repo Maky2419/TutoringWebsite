@@ -1,4 +1,7 @@
 "use client";
+import SessionTimeDisplay from "./SessionTimeDisplay";
+import { TimeZoneSelector, useTimeZone } from "./TimeZoneProvider";
+import { sessionInstants, formatSessionRange, DUBAI_TIME_ZONE } from "@/lib/sessionTime";
 
 import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -16,6 +19,9 @@ type Student = {
 type SessionBase = {
   id: number;
   lessonDate: Date | string;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
   startTime: string;
   endTime: string;
   notes: string | null;
@@ -158,6 +164,7 @@ export default function TutorDashboardClient({
   paymentConfirmations = [],
   stats,
 }: Props) {
+  const { timeZone } = useTimeZone();
   const router = useRouter();
 
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -186,7 +193,7 @@ export default function TutorDashboardClient({
       .filter((session) => session.status !== "cancelled")
       .sort(
         (a, b) =>
-          new Date(a.lessonDate).getTime() - new Date(b.lessonDate).getTime()
+          sessionInstants(a).start.getTime() - sessionInstants(b).start.getTime()
       );
 
     if (activeSessions.length === 0) {
@@ -208,6 +215,9 @@ export default function TutorDashboardClient({
       subject: tutor.category || "Tutoring",
       sessions: activeSessions.map((session) => ({
         lessonDate: session.lessonDate,
+        startsAt: session.startsAt,
+        endsAt: session.endsAt,
+        sourceTimeZone: session.sourceTimeZone,
         startTime: session.startTime,
         endTime: session.endTime,
         notes: session.notes,
@@ -271,7 +281,10 @@ export default function TutorDashboardClient({
       session.lessonDate instanceof Date
         ? session.lessonDate.toISOString()
         : session.lessonDate,
-    startTime: session.startTime,
+    startsAt: session.startsAt,
+        endsAt: session.endsAt,
+        sourceTimeZone: session.sourceTimeZone,
+        startTime: session.startTime,
     endTime: session.endTime,
     studentName: session.studentName,
     studentEmail: session.studentEmail,
@@ -282,6 +295,7 @@ export default function TutorDashboardClient({
   return (
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-7xl px-6 py-10">
+        <TimeZoneSelector />
         <div className="rounded-[32px] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-5 sm:p-7 md:p-8 shadow-xl">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -324,7 +338,7 @@ export default function TutorDashboardClient({
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           <StatCard
-            title="Today’s Sessions"
+            title="Today’s Sessions (Dubai)"
             value={String(stats.todaysSessions)}
             subtext="Lessons scheduled for today"
           />
@@ -446,7 +460,7 @@ export default function TutorDashboardClient({
                     .map((session) => (
                       <option key={session.id} value={session.id}>
                         {session.studentName || "Student"} —{" "}
-                        {formatDate(session.lessonDate)} — $
+                        {formatSessionRange(session, timeZone)} ({timeZone}){timeZone !== DUBAI_TIME_ZONE ? ` / ${formatSessionRange(session)} (Dubai)` : " (Dubai)"} $
                         {Number(session.amount || 0).toFixed(2)} USD
                       </option>
                     ))}
@@ -515,8 +529,7 @@ export default function TutorDashboardClient({
                           {session.studentEmail || "No email"}
                         </p>
                         <p className="mt-2 text-sm text-slate-700">
-                          {formatDate(session.lessonDate)} ·{" "}
-                          {session.startTime} - {session.endTime}
+                          <SessionTimeDisplay session={session} />
                         </p>
                       </div>
 

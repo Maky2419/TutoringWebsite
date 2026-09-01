@@ -1,20 +1,16 @@
+import { addCalendarDays, sessionTimeData } from "@/lib/sessionTime";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
 
-function timeToMinutes(value: string) {
-  const [h, m] = value.split(":").map(Number);
-  return h * 60 + m;
-}
-
 async function recalculateAssignmentTotal(assignmentId: number) {
   const sessions = await prisma.teachingSession.findMany({
     where: { assignmentId },
-    select: { amount: true },
+    select: { amount: true, status: true },
   });
 
-  const total = sessions.reduce((sum, s) => sum + Number(s.amount), 0);
+  const total = sessions.reduce((sum, s) => sum + (s.status === "cancelled" ? 0 : Number(s.amount)), 0);
 
   await prisma.studentTutorAssignment.update({
     where: { id: assignmentId },
@@ -95,15 +91,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const startMinutes = timeToMinutes(startTime);
-  const endMinutes = timeToMinutes(endTime);
-
-  if (endMinutes <= startMinutes) {
-    return NextResponse.json({ error: "End time must be after start time" }, { status: 400 });
+  let timings: ReturnType<typeof sessionTimeData>[];
+  try {
+    const offsets = body.repeatFourWeeks === true ? [0, 7, 14, 21] : [0];
+    timings = offsets.map(days => sessionTimeData({
+      lessonDate: addCalendarDays(lessonDate, days), startTime, endTime,
+      endDate: addCalendarDays(String(body.endDate || lessonDate), days),
+      timeZone: String(body.timeZone || ""),
+    }));
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid session time" }, { status: 400 });
   }
-
-  const durationHours = (endMinutes - startMinutes) / 60;
-  const amount = durationHours * tutor.hourlyRate;
 
   const assignment = await prisma.studentTutorAssignment.findUnique({
     where: {
@@ -118,21 +116,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Please assign the student first" }, { status: 400 });
   }
 
-  const sessionRow = await prisma.teachingSession.create({
-    data: {
-      assignmentId: assignment.id,
-      lessonDate: new Date(`${lessonDate}T00:00:00`),
-      startTime,
-      endTime,
-      notes: notes || null,
-      durationHours,
-      amount,
-    },
+  const sessions = await prisma.$transaction(async tx => {
+    const rows = [];
+    for (const timing of timings) {
+      rows.push(await tx.teachingSession.create({ data: {
+        assignmentId: assignment.id, ...timing, notes: notes || null,
+        amount: timing.durationHours * tutor.hourlyRate,
+      } }));
+    }
+    const total = await tx.teachingSession.aggregate({
+      where: { assignmentId: assignment.id, status: { not: "cancelled" } },
+      _sum: { amount: true },
+    });
+    await tx.studentTutorAssignment.update({ where: { id: assignment.id },
+      data: { accumulatedTotal: total._sum.amount || 0 } });
+    return rows;
   });
-
-  await recalculateAssignmentTotal(assignment.id);
-
-  return NextResponse.json({ ok: true, session: sessionRow });
+  return NextResponse.json({ ok: true, session: sessions[0], sessions });
 }
 
 export async function PUT(req: Request) {
@@ -164,22 +164,20 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  const startMinutes = timeToMinutes(startTime);
-  const endMinutes = timeToMinutes(endTime);
-
-  if (endMinutes <= startMinutes) {
-    return NextResponse.json({ error: "End time must be after start time" }, { status: 400 });
+  let timing: ReturnType<typeof sessionTimeData>;
+  try {
+    timing = sessionTimeData({ lessonDate, startTime, endTime,
+      endDate: String(body.endDate || lessonDate), timeZone: String(body.timeZone || "") });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid session time" }, { status: 400 });
   }
-
-  const durationHours = (endMinutes - startMinutes) / 60;
+  const { durationHours } = timing;
   const amount = durationHours * tutor.hourlyRate;
 
   const updated = await prisma.teachingSession.update({
     where: { id: sessionId },
     data: {
-      lessonDate: new Date(`${lessonDate}T00:00:00`),
-      startTime,
-      endTime,
+      ...timing,
       notes: notes || null,
       durationHours,
       amount,

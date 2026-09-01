@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import SessionTimeDisplay from "./SessionTimeDisplay";
+import { useTimeZone } from "./TimeZoneProvider";
+import { sessionDateKey, sessionInstants, zonedParts } from "@/lib/sessionTime";
+import { useEffect, useMemo, useState } from "react";
 
 type CalendarSession = {
   id: number;
   lessonDate: string;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  sourceTimeZone?: string | null;
   startTime: string;
   endTime: string;
   studentName: string | null;
@@ -18,7 +24,12 @@ export default function TutorCalendar({
 }: {
   sessions: CalendarSession[];
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const { timeZone, ready } = useTimeZone();
+  const [currentDate, setCurrentDate] = useState(new Date(2000, 0, 1));
+  useEffect(() => {
+    const [y, m] = zonedParts(new Date(), timeZone).date.split("-").map(Number);
+    setCurrentDate(new Date(y, m - 1, 1));
+  }, [timeZone]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -42,15 +53,12 @@ export default function TutorCalendar({
 
   function getSessionsForDay(day: number) {
     return sessions.filter((session) => {
-      const d = new Date(session.lessonDate);
-
-      return (
-        d.getFullYear() === year &&
-        d.getMonth() === month &&
-        d.getDate() === day
-      );
+      const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      return sessionDateKey(session, timeZone) === key;
     });
   }
+
+  if (!ready) return <p>Detecting your time zone…</p>;
 
   return (
     <div>
@@ -109,7 +117,7 @@ export default function TutorCalendar({
                           }`}
                         >
                           <p className="text-xs font-extrabold text-white">
-                            {session.startTime} - {session.endTime}
+                            <SessionTimeDisplay session={session} />
                           </p>
 
                           <p className="truncate text-xs font-medium text-white/90">

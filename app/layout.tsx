@@ -1,3 +1,4 @@
+import { TimeZoneProvider } from "@/components/TimeZoneProvider";
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "../components/NavBar";
@@ -40,9 +41,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen">
   <CurrencyProvider>
+  <TimeZoneProvider>
     <NavBar />
     <main className="min-h-[70vh]">{children}</main>
         <VideoGuide />
+  </TimeZoneProvider>
   </CurrencyProvider>
 </body>
     </html>
