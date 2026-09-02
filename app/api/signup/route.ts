@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../../lib/prisma";
@@ -38,30 +39,10 @@ const role = "STUDENT";
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-      },
+    await prisma.$transaction(async tx => {
+      const user = await tx.user.create({ data: { name, email, password: hashedPassword, role } });
+      await recordActivity(tx, { actor: user, action: "SIGNUP", entityType: "User", entityId: user.id });
     });
-
-    // if (role === "TUTOR") {
-    //   await prisma.tutor.create({
-    //     data: {
-    //       name,
-    //       email,
-    //       category: "General",
-    //       subjects: [],
-    //       curriculum: [],
-    //       bio: "Update your tutor profile from your dashboard.",
-    //       education: "",
-    //       hourlyRate: 0,
-    //       userId: user.id,
-    //     },
-    //   });
-    // }
 
     return NextResponse.json({ ok: true });
   } catch (error: any) {

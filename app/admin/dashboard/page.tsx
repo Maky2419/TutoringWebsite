@@ -1,3 +1,6 @@
+import type { Prisma } from "@prisma/client";
+import { auditChange } from "@/lib/activity";
+import AdminActivityHistory from "@/components/AdminActivityHistory";
 import AdminLoginHistory from "@/components/AdminLoginHistory";
 import AdminStudentsTable from "@/components/AdminStudentsTable";
 import { DUBAI_TIME_ZONE, sessionTimeData, sessionInstants, zonedParts } from "@/lib/sessionTime";
@@ -40,32 +43,32 @@ async function requireAdmin() {
   return session;
 }
 
-async function deleteTutorAndEverything(tutorId: number) {
-  const tutor = await prisma.tutor.findUnique({
+async function deleteTutorAndEverything(tx: Prisma.TransactionClient, tutorId: number) {
+  const tutor = await tx.tutor.findUnique({
     where: { id: tutorId },
     include: {
       assignedStudents: true,
     },
   });
 
-  if (!tutor) return;
+  if (!tutor) throw new Error("Tutor not found");
 
   const assignmentIds = tutor.assignedStudents.map((a) => a.id);
 
-  await prisma.tutorPaymentConfirmation.deleteMany({
+  await tx.tutorPaymentConfirmation.deleteMany({
     where: { tutorId },
   });
 
-  await prisma.booking.deleteMany({
+  await tx.booking.deleteMany({
     where: { tutorId },
   });
 
-  await prisma.review.deleteMany({
+  await tx.review.deleteMany({
     where: { tutorId },
   });
 
   if (assignmentIds.length > 0) {
-    await prisma.teachingSession.deleteMany({
+    await tx.teachingSession.deleteMany({
       where: {
         assignmentId: {
           in: assignmentIds,
@@ -73,7 +76,7 @@ async function deleteTutorAndEverything(tutorId: number) {
       },
     });
 
-    await prisma.studentTutorAssignment.deleteMany({
+    await tx.studentTutorAssignment.deleteMany({
       where: {
         id: {
           in: assignmentIds,
@@ -82,12 +85,12 @@ async function deleteTutorAndEverything(tutorId: number) {
     });
   }
 
-  await prisma.tutor.delete({
+  await tx.tutor.delete({
     where: { id: tutorId },
   });
 
   if (tutor.userId) {
-    await prisma.user.delete({
+    await tx.user.delete({
       where: { id: tutor.userId },
     });
   }
@@ -98,20 +101,20 @@ async function updateUserAction(formData: FormData) {
 
   const session = await requireAdmin();
 
-  const id = String(formData.get("id"));
-  const role = String(formData.get("role"));
-
-  if (id === (session.user as any).id && role !== "ADMIN") {
-    throw new Error("You cannot remove admin role from yourself.");
-  }
-
-  await prisma.user.update({
-    where: { id },
-    data: {
-      name: String(formData.get("name") || ""),
-      email: String(formData.get("email") || ""),
-      role: role as any,
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "USER_UPDATED", entityType: "User", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    const id = String(formData.get("id"));
+    const role = String(formData.get("role"));
+    if (id === (session.user as any).id && role !== "ADMIN") {
+        throw new Error("You cannot remove admin role from yourself.");
+    }
+    await tx.user.update({
+        where: { id },
+        data: {
+            name: String(formData.get("name") || ""),
+            email: String(formData.get("email") || ""),
+            role: role as any,
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -122,60 +125,54 @@ async function deleteUserAction(formData: FormData) {
 
   const session = await requireAdmin();
 
-  const id = String(formData.get("id"));
-
-  if (id === (session.user as any).id) {
-    throw new Error("You cannot delete your own admin account.");
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id },
-    include: {
-      tutor: true,
-    },
-  });
-
-  if (!user) return;
-
-  if (user.tutor) {
-    await deleteTutorAndEverything(user.tutor.id);
-  } else {
-    await prisma.tutorPaymentConfirmation.deleteMany({
-      where: { studentId: id },
-    });
-
-    await prisma.booking.deleteMany({
-      where: { studentUserId: id },
-    });
-
-    const assignments = await prisma.studentTutorAssignment.findMany({
-      where: { studentId: id },
-    });
-
-    const assignmentIds = assignments.map((a) => a.id);
-
-    if (assignmentIds.length > 0) {
-      await prisma.teachingSession.deleteMany({
-        where: {
-          assignmentId: {
-            in: assignmentIds,
-          },
-        },
-      });
-
-      await prisma.studentTutorAssignment.deleteMany({
-        where: {
-          id: {
-            in: assignmentIds,
-          },
-        },
-      });
+  await auditChange({ actorId: (session.user as any).id, action: "USER_DELETED", entityType: "User", entityId: String(formData.get("id") || ""),  }, async tx => {
+    const id = String(formData.get("id"));
+    if (id === (session.user as any).id) {
+        throw new Error("You cannot delete your own admin account.");
     }
-
-    await prisma.user.delete({
-      where: { id },
+    const user = await tx.user.findUnique({
+        where: { id },
+        include: {
+            tutor: true,
+        },
     });
-  }
+    if (!user)
+        throw new Error("User not found");
+    if (user.tutor) {
+        await deleteTutorAndEverything(tx, user.tutor.id);
+    }
+    else {
+        await tx.tutorPaymentConfirmation.deleteMany({
+            where: { studentId: id },
+        });
+        await tx.booking.deleteMany({
+            where: { studentUserId: id },
+        });
+        const assignments = await tx.studentTutorAssignment.findMany({
+            where: { studentId: id },
+        });
+        const assignmentIds = assignments.map((a) => a.id);
+        if (assignmentIds.length > 0) {
+            await tx.teachingSession.deleteMany({
+                where: {
+                    assignmentId: {
+                        in: assignmentIds,
+                    },
+                },
+            });
+            await tx.studentTutorAssignment.deleteMany({
+                where: {
+                    id: {
+                        in: assignmentIds,
+                    },
+                },
+            });
+        }
+        await tx.user.delete({
+            where: { id },
+        });
+    }
+  });
 
   revalidatePath("/admin/dashboard");
 }
@@ -183,33 +180,33 @@ async function deleteUserAction(formData: FormData) {
 async function updateTutorAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  const id = Number(formData.get("id"));
-
-  const tutor = await prisma.tutor.update({
-    where: { id },
-    data: {
-      name: String(formData.get("name") || ""),
-      email: String(formData.get("email") || ""),
-      category: String(formData.get("category") || ""),
-      subjects: csvToJsonArray(formData.get("subjects")),
-      curriculum: csvToJsonArray(formData.get("curriculum")),
-      hourlyRate: Number(formData.get("hourlyRate") || 0),
-      bio: String(formData.get("bio") || ""),
-      education: String(formData.get("education") || ""),
-    },
-  });
-
-  if (tutor.userId) {
-    await prisma.user.update({
-      where: { id: tutor.userId },
-      data: {
-        name: tutor.name,
-        email: tutor.email,
-      },
+  await auditChange({ actorId: (session.user as any).id, action: "TUTOR_UPDATED", entityType: "Tutor", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    const id = Number(formData.get("id"));
+    const tutor = await tx.tutor.update({
+        where: { id },
+        data: {
+            name: String(formData.get("name") || ""),
+            email: String(formData.get("email") || ""),
+            category: String(formData.get("category") || ""),
+            subjects: csvToJsonArray(formData.get("subjects")),
+            curriculum: csvToJsonArray(formData.get("curriculum")),
+            hourlyRate: Number(formData.get("hourlyRate") || 0),
+            bio: String(formData.get("bio") || ""),
+            education: String(formData.get("education") || ""),
+        },
     });
-  }
+    if (tutor.userId) {
+        await tx.user.update({
+            where: { id: tutor.userId },
+            data: {
+                name: tutor.name,
+                email: tutor.email,
+            },
+        });
+    }
+  });
 
   revalidatePath("/admin/dashboard");
   revalidatePath("/tutors");
@@ -218,9 +215,11 @@ async function updateTutorAction(formData: FormData) {
 async function deleteTutorAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await deleteTutorAndEverything(Number(formData.get("id")));
+  await auditChange({ actorId: (session.user as any).id, action: "TUTOR_DELETED", entityType: "Tutor", entityId: String(formData.get("id") || ""),  }, async tx => {
+    await deleteTutorAndEverything(tx, Number(formData.get("id")));
+  });
 
   revalidatePath("/admin/dashboard");
   revalidatePath("/tutors");
@@ -229,19 +228,21 @@ async function deleteTutorAction(formData: FormData) {
 async function updateBookingAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.booking.update({
-    where: { id: Number(formData.get("id")) },
-    data: {
-      studentName: String(formData.get("studentName") || ""),
-      studentEmail: String(formData.get("studentEmail") || ""),
-      subject: String(formData.get("subject") || ""),
-      preferredTimes: String(formData.get("preferredTimes") || ""),
-      message: String(formData.get("message") || ""),
-      status: String(formData.get("status") || "pending"),
-      tutorId: Number(formData.get("tutorId")),
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "BOOKING_UPDATED", entityType: "Booking", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    await tx.booking.update({
+        where: { id: Number(formData.get("id")) },
+        data: {
+            studentName: String(formData.get("studentName") || ""),
+            studentEmail: String(formData.get("studentEmail") || ""),
+            subject: String(formData.get("subject") || ""),
+            preferredTimes: String(formData.get("preferredTimes") || ""),
+            message: String(formData.get("message") || ""),
+            status: String(formData.get("status") || "pending"),
+            tutorId: Number(formData.get("tutorId")),
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -250,10 +251,12 @@ async function updateBookingAction(formData: FormData) {
 async function deleteBookingAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.booking.delete({
-    where: { id: Number(formData.get("id")) },
+  await auditChange({ actorId: (session.user as any).id, action: "BOOKING_DELETED", entityType: "Booking", entityId: String(formData.get("id") || ""),  }, async tx => {
+    await tx.booking.delete({
+        where: { id: Number(formData.get("id")) },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -262,15 +265,17 @@ async function deleteBookingAction(formData: FormData) {
 async function updateAssignmentAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.studentTutorAssignment.update({
-    where: { id: Number(formData.get("id")) },
-    data: {
-      tutorId: Number(formData.get("tutorId")),
-      studentId: String(formData.get("studentId")),
-      accumulatedTotal: String(formData.get("accumulatedTotal") || "0"),
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "ASSIGNMENT_UPDATED", entityType: "Assignment", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    await tx.studentTutorAssignment.update({
+        where: { id: Number(formData.get("id")) },
+        data: {
+            tutorId: Number(formData.get("tutorId")),
+            studentId: String(formData.get("studentId")),
+            accumulatedTotal: String(formData.get("accumulatedTotal") || "0"),
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -279,16 +284,16 @@ async function updateAssignmentAction(formData: FormData) {
 async function deleteAssignmentAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  const id = Number(formData.get("id"));
-
-  await prisma.teachingSession.deleteMany({
-    where: { assignmentId: id },
-  });
-
-  await prisma.studentTutorAssignment.delete({
-    where: { id },
+  await auditChange({ actorId: (session.user as any).id, action: "ASSIGNMENT_DELETED", entityType: "Assignment", entityId: String(formData.get("id") || ""),  }, async tx => {
+    const id = Number(formData.get("id"));
+    await tx.teachingSession.deleteMany({
+        where: { assignmentId: id },
+    });
+    await tx.studentTutorAssignment.delete({
+        where: { id },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -297,22 +302,24 @@ async function deleteAssignmentAction(formData: FormData) {
 async function updateTeachingSessionAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.teachingSession.update({
-    where: { id: Number(formData.get("id")) },
-    data: {
-      ...sessionTimeData({
-        lessonDate: String(formData.get("lessonDate") || ""),
-        endDate: String(formData.get("endDate") || ""),
-        startTime: String(formData.get("startTime") || ""),
-        endTime: String(formData.get("endTime") || ""),
-        timeZone: DUBAI_TIME_ZONE,
-      }),
-      notes: String(formData.get("notes") || ""),
-      amount: String(formData.get("amount") || "0"),
-      status: String(formData.get("status") || "scheduled"),
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "SESSION_UPDATED", entityType: "TeachingSession", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    await tx.teachingSession.update({
+        where: { id: Number(formData.get("id")) },
+        data: {
+            ...sessionTimeData({
+                lessonDate: String(formData.get("lessonDate") || ""),
+                endDate: String(formData.get("endDate") || ""),
+                startTime: String(formData.get("startTime") || ""),
+                endTime: String(formData.get("endTime") || ""),
+                timeZone: DUBAI_TIME_ZONE,
+            }),
+            notes: String(formData.get("notes") || ""),
+            amount: String(formData.get("amount") || "0"),
+            status: String(formData.get("status") || "scheduled"),
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -321,10 +328,12 @@ async function updateTeachingSessionAction(formData: FormData) {
 async function deleteTeachingSessionAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.teachingSession.delete({
-    where: { id: Number(formData.get("id")) },
+  await auditChange({ actorId: (session.user as any).id, action: "SESSION_DELETED", entityType: "TeachingSession", entityId: String(formData.get("id") || ""),  }, async tx => {
+    await tx.teachingSession.delete({
+        where: { id: Number(formData.get("id")) },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -333,15 +342,17 @@ async function deleteTeachingSessionAction(formData: FormData) {
 async function updatePaymentAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.tutorPaymentConfirmation.update({
-    where: { id: Number(formData.get("id")) },
-    data: {
-      amountPaid: String(formData.get("amountPaid") || "0"),
-      confirmed: String(formData.get("confirmed")) === "true",
-      note: String(formData.get("note") || ""),
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "PAYMENT_UPDATED", entityType: "Payment", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    await tx.tutorPaymentConfirmation.update({
+        where: { id: Number(formData.get("id")) },
+        data: {
+            amountPaid: String(formData.get("amountPaid") || "0"),
+            confirmed: String(formData.get("confirmed")) === "true",
+            note: String(formData.get("note") || ""),
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -350,10 +361,12 @@ async function updatePaymentAction(formData: FormData) {
 async function deletePaymentAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.tutorPaymentConfirmation.delete({
-    where: { id: Number(formData.get("id")) },
+  await auditChange({ actorId: (session.user as any).id, action: "PAYMENT_DELETED", entityType: "Payment", entityId: String(formData.get("id") || ""),  }, async tx => {
+    await tx.tutorPaymentConfirmation.delete({
+        where: { id: Number(formData.get("id")) },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -362,15 +375,17 @@ async function deletePaymentAction(formData: FormData) {
 async function updateReviewAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.review.update({
-    where: { id: Number(formData.get("id")) },
-    data: {
-      rating: Number(formData.get("rating")),
-      student: String(formData.get("student") || ""),
-      comment: String(formData.get("comment") || ""),
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "REVIEW_UPDATED", entityType: "Review", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
+    await tx.review.update({
+        where: { id: Number(formData.get("id")) },
+        data: {
+            rating: Number(formData.get("rating")),
+            student: String(formData.get("student") || ""),
+            comment: String(formData.get("comment") || ""),
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -380,10 +395,12 @@ async function updateReviewAction(formData: FormData) {
 async function deleteReviewAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.review.delete({
-    where: { id: Number(formData.get("id")) },
+  await auditChange({ actorId: (session.user as any).id, action: "REVIEW_DELETED", entityType: "Review", entityId: String(formData.get("id") || ""),  }, async tx => {
+    await tx.review.delete({
+        where: { id: Number(formData.get("id")) },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -393,15 +410,17 @@ async function deleteReviewAction(formData: FormData) {
 async function deleteAccountAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.account.delete({
-    where: {
-      provider_providerAccountId: {
-        provider: String(formData.get("provider")),
-        providerAccountId: String(formData.get("providerAccountId")),
-      },
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "OAUTH_ACCOUNT_DELETED", entityType: "Account", entityId: null,  }, async tx => {
+    await tx.account.delete({
+        where: {
+            provider_providerAccountId: {
+                provider: String(formData.get("provider")),
+                providerAccountId: String(formData.get("providerAccountId")),
+            },
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -410,15 +429,17 @@ async function deleteAccountAction(formData: FormData) {
 async function deleteVerificationTokenAction(formData: FormData) {
   "use server";
 
-  await requireAdmin();
+  const session = await requireAdmin();
 
-  await prisma.verificationToken.delete({
-    where: {
-      identifier_token: {
-        identifier: String(formData.get("identifier")),
-        token: String(formData.get("token")),
-      },
-    },
+  await auditChange({ actorId: (session.user as any).id, action: "VERIFICATION_TOKEN_DELETED", entityType: "VerificationToken", entityId: null,  }, async tx => {
+    await tx.verificationToken.delete({
+        where: {
+            identifier_token: {
+                identifier: String(formData.get("identifier")),
+                token: String(formData.get("token")),
+            },
+        },
+    });
   });
 
   revalidatePath("/admin/dashboard");
@@ -563,6 +584,7 @@ export default async function AdminDashboardPage() {
         <a href="#all-students" className="underline">All Students</a>
         <a href="#all-users" className="underline">All Users</a>
         <a href="#login-history" className="underline">Login History</a>
+        <a href="#activity-history" className="underline">Activity History</a>
       </nav>
       <section className="mb-12 grid gap-5 md:grid-cols-4">
         <Stat title="Total Users" value={users.length} />
@@ -917,6 +939,10 @@ export default async function AdminDashboardPage() {
             </tr>
           ))}
         </Table>
+      </Section>
+
+      <Section id="activity-history" title="Activity History — All Users">
+        <AdminActivityHistory />
       </Section>
 
       <Section id="login-history" title="Login History — Latest 100 Logins">

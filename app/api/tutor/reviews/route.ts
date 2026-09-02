@@ -1,3 +1,4 @@
+import { auditChange } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
@@ -78,7 +79,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const review = await prisma.review.create({
+  const review = await auditChange({ actorId: tutor.userId, action: "REVIEW_CREATED", entityType: "Review", details: { tutorId: tutor.id } }, tx => tx.review.create({
     data: {
       tutorId: tutor.id,
       student,
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
         createdAt: new Date(createdAt),
       }),
     },
-  });
+  }));
 
   return NextResponse.json({
     ok: true,

@@ -1,3 +1,4 @@
+import { auditChange } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../../lib/auth";
@@ -38,11 +39,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
 
-  const updatedBooking = await prisma.booking.update({
+  const updatedBooking = await auditChange({ actorId: userId, action: "BOOKING_UPDATED", entityType: "Booking", entityId: bookingId, details: { status } }, tx => tx.booking.update({
     where: { id: bookingId },
     data: { status },
     include: { tutor: true },
-  });
+  }));
 
   return NextResponse.json({ booking: updatedBooking });
 }

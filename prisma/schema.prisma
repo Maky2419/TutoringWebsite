@@ -232,3 +232,22 @@ model PasswordResetAudit {
   @@index([adminId, createdAt])
   @@index([targetId, createdAt])
 }
+
+// Actor identity is a snapshot, intentionally without cascading foreign keys.
+// Audit records survive deletion of users, tutors, sessions, and payments.
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  actorId    String?
+  actorName  String   @db.VarChar(191)
+  actorEmail String?  @db.VarChar(191)
+  actorRole  String   @db.VarChar(30)
+  action     String   @db.VarChar(60)
+  entityType String   @db.VarChar(50)
+  entityId   String?  @db.VarChar(191)
+  details    Json
+
+  @@index([createdAt, id])
+  @@index([action, createdAt, id])
+  @@index([actorId, createdAt, id])
+}

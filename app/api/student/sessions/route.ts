@@ -1,65 +1,7 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../../lib/auth";
-import { prisma } from "../../../../lib/prisma";
-
-export async function DELETE(
-  _request: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = (session.user as any).id;
-  const sessionId = Number(params.id);
-
-  if (!sessionId) {
-    return NextResponse.json({ error: "Invalid session ID" }, { status: 400 });
-  }
-
-  const teachingSession = await prisma.teachingSession.findFirst({
-    where: {
-      id: sessionId,
-      assignment: {
-        studentId: userId,
-      },
-    },
-    include: {
-      assignment: true,
-    },
-  });
-
-  if (!teachingSession) {
-    return NextResponse.json(
-      { error: "Session not found" },
-      { status: 404 }
-    );
-  }
-
-  await prisma.teachingSession.delete({
-    where: { id: sessionId },
-  });
-
-  const total = await prisma.teachingSession.aggregate({
-    where: {
-      assignmentId: teachingSession.assignmentId,
-    },
-    _sum: {
-      amount: true,
-    },
-  });
-
-  await prisma.studentTutorAssignment.update({
-    where: {
-      id: teachingSession.assignmentId,
-    },
-    data: {
-      accumulatedTotal: total._sum.amount || 0,
-    },
-  });
-
-  return NextResponse.json({ success: true });
+// Legacy cancellation URL. Preserve the lesson and payment history on cancellation.
+import { PATCH } from "./[id]/route";
+export async function DELETE(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const id = new URL(req.url).searchParams.get("id") || body.sessionId || body.id || "";
+  return PATCH(req, { params: { id: String(id) } });
 }

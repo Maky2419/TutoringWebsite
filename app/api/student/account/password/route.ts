@@ -1,3 +1,4 @@
+import { auditChange } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import bcrypt from "bcryptjs";
@@ -75,14 +76,14 @@ const passwordMatches = await bcrypt.compare(
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-  await prisma.user.update({
+  await auditChange({ actorId: user.id, action: "PASSWORD_UPDATED", entityType: "User", entityId: user.id }, tx => tx.user.update({
     where: {
       id: user.id,
     },
     data: {
       password: hashedPassword,
     },
-  });
+  }));
 
   return NextResponse.json({
     success: true,

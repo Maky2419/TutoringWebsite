@@ -1,3 +1,5 @@
+import { recordActivity } from "@/lib/activity";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
@@ -110,6 +112,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // Email delivery is external and cannot share a database transaction.
+    // Do not report the already-delivered application as failed if its log write fails.
+    try {
+      await recordActivity(prisma, { actor: { name: "Public applicant (unverified)", email, role: "GUEST" },
+        action: "APPLICATION_SUBMITTED", entityType: "TutorApplication", details: { source: "Public form; email accepted by provider" } });
+    } catch {
+      console.error("ACTIVITY_LOG_WRITE_FAILED: APPLICATION_SUBMITTED");
+    }
     return NextResponse.json({ ok: true });
   } catch (err: any) {
     return NextResponse.json(

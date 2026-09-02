@@ -1,3 +1,4 @@
+import { auditChange } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -59,14 +60,14 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Bio is required" }, { status: 400 });
   }
 
-  const updatedTutor = await prisma.tutor.update({
+  const updatedTutor = await auditChange({ actorId: tutor.userId, action: "PROFILE_UPDATED", entityType: "Tutor", entityId: tutor.id, details: { fields: ["subjects", "education", "bio"] } }, tx => tx.tutor.update({
     where: { id: tutor.id },
     data: {
       subjects,
       education,
       bio,
     },
-  });
+  }));
 
   return NextResponse.json({
     ok: true,

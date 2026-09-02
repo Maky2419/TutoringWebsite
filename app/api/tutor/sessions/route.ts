@@ -1,18 +1,20 @@
+import { recordActivity } from "@/lib/activity";
+import type { Prisma } from "@prisma/client";
 import { addCalendarDays, sessionTimeData } from "@/lib/sessionTime";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth";
 import { prisma } from "../../../../lib/prisma";
 
-async function recalculateAssignmentTotal(assignmentId: number) {
-  const sessions = await prisma.teachingSession.findMany({
+async function recalculateAssignmentTotal(tx: Prisma.TransactionClient, assignmentId: number) {
+  const sessions = await tx.teachingSession.findMany({
     where: { assignmentId },
     select: { amount: true, status: true },
   });
 
   const total = sessions.reduce((sum, s) => sum + (s.status === "cancelled" ? 0 : Number(s.amount)), 0);
 
-  await prisma.studentTutorAssignment.update({
+  await tx.studentTutorAssignment.update({
     where: { id: assignmentId },
     data: {
       accumulatedTotal: total,
@@ -119,17 +121,22 @@ export async function POST(req: Request) {
   const sessions = await prisma.$transaction(async tx => {
     const rows = [];
     for (const timing of timings) {
-      rows.push(await tx.teachingSession.create({ data: {
-        assignmentId: assignment.id, ...timing, notes: notes || null,
-        amount: timing.durationHours * tutor.hourlyRate,
-      } }));
+        rows.push(await tx.teachingSession.create({ data: {
+                assignmentId: assignment.id, ...timing, notes: notes || null,
+                amount: timing.durationHours * tutor.hourlyRate,
+            } }));
     }
     const total = await tx.teachingSession.aggregate({
-      where: { assignmentId: assignment.id, status: { not: "cancelled" } },
-      _sum: { amount: true },
+        where: { assignmentId: assignment.id, status: { not: "cancelled" } },
+        _sum: { amount: true },
     });
     await tx.studentTutorAssignment.update({ where: { id: assignment.id },
-      data: { accumulatedTotal: total._sum.amount || 0 } });
+        data: { accumulatedTotal: total._sum.amount || 0 } });
+    for (const row of rows) {
+        await recordActivity(tx, { actorId: tutor.userId, action: "SESSION_CREATED", entityType: "TeachingSession", entityId: row.id,
+            details: { studentId, tutorId: tutor.id, assignmentId: assignment.id, startsAt: row.startsAt, endsAt: row.endsAt,
+                amount: Number(row.amount), currency: "USD" } });
+    }
     return rows;
   });
   return NextResponse.json({ ok: true, session: sessions[0], sessions });
@@ -174,17 +181,22 @@ export async function PUT(req: Request) {
   const { durationHours } = timing;
   const amount = durationHours * tutor.hourlyRate;
 
-  const updated = await prisma.teachingSession.update({
-    where: { id: sessionId },
-    data: {
-      ...timing,
-      notes: notes || null,
-      durationHours,
-      amount,
-    },
+  const updated = await prisma.$transaction(async tx => {
+    const updated = await tx.teachingSession.update({
+        where: { id: sessionId },
+        data: {
+            ...timing,
+            notes: notes || null,
+            durationHours,
+            amount,
+        },
+    });
+    await recalculateAssignmentTotal(tx, existing.assignmentId);
+    await recordActivity(tx, { actorId: tutor.userId, action: "SESSION_UPDATED", entityType: "TeachingSession", entityId: sessionId,
+        details: { assignmentId: existing.assignmentId, studentId: existing.assignment.studentId,
+            startsAt: updated.startsAt, endsAt: updated.endsAt, amount, currency: "USD" } });
+    return updated;
   });
-
-  await recalculateAssignmentTotal(existing.assignmentId);
 
   return NextResponse.json({ ok: true, session: updated });
 }
@@ -214,11 +226,14 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  await prisma.teachingSession.delete({
-    where: { id: sessionId },
+  await prisma.$transaction(async tx => {
+    await tx.teachingSession.delete({
+        where: { id: sessionId },
+    });
+    await recalculateAssignmentTotal(tx, existing.assignmentId);
+    await recordActivity(tx, { actorId: tutor.userId, action: "SESSION_DELETED", entityType: "TeachingSession", entityId: sessionId,
+        details: { assignmentId: existing.assignmentId, studentId: existing.assignment.studentId } });
   });
-
-  await recalculateAssignmentTotal(existing.assignmentId);
 
   return NextResponse.json({ ok: true });
 }

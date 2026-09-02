@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { sendEmail } from "../../../../lib/mailer";
@@ -46,11 +47,16 @@ export async function GET(req: Request) {
 
     const newStatus = action === "accept" ? "ACCEPTED" : "DECLINED";
 
-    // Update status
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: newStatus },
+    const changed = await prisma.$transaction(async tx => {
+      const result = await tx.booking.updateMany({ where: { id: bookingId, status: { notIn: ["ACCEPTED", "DECLINED"] } }, data: { status: newStatus } });
+      if (result.count) await recordActivity(tx, {
+        actor: { name: "Booking email link", role: "LINK" },
+        action: action === "accept" ? "BOOKING_ACCEPTED" : "BOOKING_DECLINED", entityType: "Booking", entityId: bookingId,
+        details: { tutorId: booking.tutorId, studentId: booking.studentUserId, status: newStatus, source: "Verified booking link" },
+      });
+      return result.count;
     });
+    if (!changed) return htmlPage(200, "Already recorded", "This booking already has a response.");
 
     const tutorName = booking.tutor?.name || "Your tutor";
     const tutorEmail = booking.tutor?.email || "";

@@ -1,3 +1,4 @@
+import { recordActivity } from "./activity";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -29,13 +30,21 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   events: {
+    async signOut(message) {
+      const id = message.token?.id || message.token?.sub;
+      if (typeof id === "string") {
+        await recordActivity(prisma, { actorId: id, action: "LOGOUT", entityType: "User", entityId: id });
+      }
+    },
     async signIn({ user, account }) {
       // signIn runs for a successful login, not session reads or page refreshes.
-      await prisma.loginHistory.create({ data: {
-        userId: user.id,
-        createdAt: new Date(),
-        provider: account?.provider || "credentials",
-      } });
+      await prisma.$transaction(async tx => {
+        await tx.loginHistory.create({ data: {
+          userId: user.id, createdAt: new Date(), provider: account?.provider || "credentials",
+        } });
+        await recordActivity(tx, { actorId: user.id, action: "LOGIN", entityType: "User", entityId: user.id,
+          details: { provider: account?.provider || "credentials" } });
+      });
     },
   },
   callbacks: {

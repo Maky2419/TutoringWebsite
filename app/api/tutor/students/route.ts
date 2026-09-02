@@ -1,3 +1,4 @@
+import { recordActivity } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth";
@@ -66,18 +67,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "studentId is required" }, { status: 400 });
   }
 
-  await prisma.studentTutorAssignment.upsert({
-    where: {
-      tutorId_studentId: {
-        tutorId: tutor.id,
-        studentId,
-      },
-    },
-    update: {},
-    create: {
-      tutorId: tutor.id,
-      studentId,
-    },
+  await prisma.$transaction(async tx => {
+    const existing = await tx.studentTutorAssignment.findUnique({ where: { tutorId_studentId: { tutorId: tutor.id, studentId } } });
+    if (existing) return;
+    const student = await tx.user.findUnique({ where: { id: studentId }, select: { role: true } });
+    if (student?.role !== "STUDENT") throw new Error("Student not found");
+    const assignment = await tx.studentTutorAssignment.create({ data: { tutorId: tutor.id, studentId } });
+    await recordActivity(tx, { actorId: tutor.userId, action: "ASSIGNMENT_CREATED", entityType: "Assignment", entityId: assignment.id,
+      details: { tutorId: tutor.id, studentId } });
   });
 
   return NextResponse.json({ ok: true });
@@ -97,11 +94,12 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "studentId is required" }, { status: 400 });
   }
 
-  await prisma.studentTutorAssignment.deleteMany({
-    where: {
-      tutorId: tutor.id,
-      studentId,
-    },
+  await prisma.$transaction(async tx => {
+    const assignment = await tx.studentTutorAssignment.findUnique({ where: { tutorId_studentId: { tutorId: tutor.id, studentId } } });
+    if (!assignment) return;
+    await tx.studentTutorAssignment.delete({ where: { id: assignment.id } });
+    await recordActivity(tx, { actorId: tutor.userId, action: "ASSIGNMENT_DELETED", entityType: "Assignment", entityId: assignment.id,
+      details: { tutorId: tutor.id, studentId } });
   });
 
   return NextResponse.json({ ok: true });

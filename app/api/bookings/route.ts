@@ -1,3 +1,4 @@
+import { auditChange } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
@@ -44,7 +45,7 @@ const session = await getServerSession(authOptions);
     const acceptToken = crypto.randomUUID();
     const declineToken = crypto.randomUUID();
 
-    const booking = await prisma.booking.create({
+    const booking = await auditChange({ actorId: studentUserId, action: "BOOKING_CREATED", entityType: "Booking", details: { tutorId, studentId: studentUserId } }, tx => tx.booking.create({
       data: {
         tutorId,
         studentUserId,
@@ -56,7 +57,7 @@ const session = await getServerSession(authOptions);
         acceptToken,
         declineToken,
       },
-    });
+    }));
 
     let emailSent = false;
     let emailError: string | null = null;

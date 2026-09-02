@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import StudentScheduleView from "./StudentScheduleView";
-import { generateInvoice } from "@/lib/generateInvoice";
+import { downloadInvoice } from "@/lib/downloadInvoice";
 import { Money } from "@/components/CurrencyProvider";
 
 type Tutor = {
@@ -301,23 +301,11 @@ value={<Money amountUSD={stats.totalSpent} />}
                 </p>
               ) : (
                 assignments.map((assignment) => {
-                  const tutorSessions = allSessions.filter(
-                    (session) =>
-                      session.tutorEmail === assignment.tutor.email &&
-                      session.status !== "cancelled"
-                  );
-
                   return (
                     <button
                       key={assignment.id}
                       onClick={() =>
-                        generateInvoice({
-                          studentName: userName || "Student",
-                          tutorName: assignment.tutor.name || "Tutor",
-                          subject: "Tutoring",
-                          sessions: tutorSessions,
-                          amountPaid: Number(assignment.amountPaid || 0),
-                        })
+                        downloadInvoice(assignment.id)
                       }
                       className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
                     >

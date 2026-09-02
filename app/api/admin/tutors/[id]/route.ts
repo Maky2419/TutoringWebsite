@@ -1,3 +1,5 @@
+import { getCurrentAdmin } from "@/lib/adminSecurity";
+import { auditChange } from "@/lib/activity";
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/prisma";
 
@@ -5,6 +7,8 @@ export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const admin = await getCurrentAdmin();
+  if (!admin) return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
   try {
     const tutorId = Number(params.id);
 
@@ -17,7 +21,7 @@ export async function GET(
       include: {
         assignedStudents: {
           include: {
-            student: true,
+            student: { select: { id: true, name: true, email: true } },
             sessions: true,
           },
         },
@@ -43,6 +47,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const admin = await getCurrentAdmin();
+  if (!admin) return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
   try {
     const tutorId = Number(params.id);
 
@@ -50,9 +56,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid tutor ID" }, { status: 400 });
     }
 
-    await prisma.tutor.delete({
-      where: { id: tutorId },
-    });
+    await auditChange({ actorId: admin.id, action: "TUTOR_DELETED", entityType: "Tutor", entityId: tutorId },
+      tx => tx.tutor.delete({ where: { id: tutorId } }));
 
     return NextResponse.json({ message: "Tutor deleted successfully" });
   } catch (error) {

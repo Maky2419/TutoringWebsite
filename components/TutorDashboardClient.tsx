@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import TutorScheduleManager from "./TutorScheduleManager";
 import TutorCalendar from "./TutorCalendar";
 import { Money } from "@/components/CurrencyProvider";
-import { generateInvoice } from "@/lib/generateInvoice";
+import { downloadInvoice } from "@/lib/downloadInvoice";
 
 type Student = {
   id: string;
@@ -189,43 +189,7 @@ export default function TutorDashboardClient({
       return;
     }
 
-    const activeSessions = assignment.sessions
-      .filter((session) => session.status !== "cancelled")
-      .sort(
-        (a, b) =>
-          sessionInstants(a).start.getTime() - sessionInstants(b).start.getTime()
-      );
-
-    if (activeSessions.length === 0) {
-      alert("This student has no active sessions to include in the invoice.");
-      return;
-    }
-
-    const confirmedPaid = paymentConfirmations
-      .filter(
-        (payment) =>
-          payment.studentId === invoiceStudentId && payment.confirmed !== false
-      )
-      .reduce((sum, payment) => sum + Number(payment.amountPaid || 0), 0);
-
-    generateInvoice({
-      studentName:
-        assignment.student.name || assignment.student.email || "Student",
-      tutorName: tutor.name || "Tutor",
-      subject: tutor.category || "Tutoring",
-      sessions: activeSessions.map((session) => ({
-        lessonDate: session.lessonDate,
-        startsAt: session.startsAt,
-        endsAt: session.endsAt,
-        sourceTimeZone: session.sourceTimeZone,
-        startTime: session.startTime,
-        endTime: session.endTime,
-        notes: session.notes,
-        amount: session.amount,
-        durationHours: session.durationHours,
-      })),
-      amountPaid: confirmedPaid,
-    });
+    downloadInvoice(assignment.id);
   }
 
   async function confirmManualPayment() {
