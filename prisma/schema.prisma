@@ -15,6 +15,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  sessionVersion Int      @default(0)
   role          UserRole  @default(STUDENT)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -25,6 +26,11 @@ model User {
   studentBookings      Booking[]                  @relation("StudentBookings")
   assignedTutors       StudentTutorAssignment[]   @relation("StudentAssignments")
   paymentConfirmations TutorPaymentConfirmation[] @relation("StudentPaymentConfirmations")
+
+  loginHistory LoginHistory[]
+  adminPasswordAttempt AdminPasswordAttempt?
+  passwordResetsPerformed PasswordResetAudit[] @relation("PasswordResetAdmin")
+  passwordResetsReceived PasswordResetAudit[] @relation("PasswordResetTarget")
 
   tutor Tutor?
 }
@@ -193,4 +199,36 @@ enum UserRole {
   ADMIN
   STUDENT
   TUTOR
+}
+
+// Successful sign-ins, separate from JWT cookies and the adapter's Session table.
+model LoginHistory {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  provider  String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt, id])
+}
+
+// A shared database-backed limit survives server restarts and multiple workers.
+model AdminPasswordAttempt {
+  adminId     String   @id
+  attempts    Int      @default(0)
+  windowStart DateTime @default(now())
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+// Store who reset which account, never either password or its hash.
+model PasswordResetAudit {
+  id        Int      @id @default(autoincrement())
+  adminId   String?
+  targetId  String?
+  createdAt DateTime @default(now())
+  admin  User? @relation("PasswordResetAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  target User? @relation("PasswordResetTarget", fields: [targetId], references: [id], onDelete: SetNull)
+
+  @@index([adminId, createdAt])
+  @@index([targetId, createdAt])
 }

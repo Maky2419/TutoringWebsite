@@ -1,3 +1,5 @@
+import AdminLoginHistory from "@/components/AdminLoginHistory";
+import AdminStudentsTable from "@/components/AdminStudentsTable";
 import { DUBAI_TIME_ZONE, sessionTimeData, sessionInstants, zonedParts } from "@/lib/sessionTime";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -9,7 +11,7 @@ import { Money } from "@/components/CurrencyProvider";
 
 function formatDate(date?: Date | null) {
   if (!date) return "N/A";
-  return new Date(date).toLocaleString();
+  return new Date(date).toLocaleString("en-GB", { timeZone: DUBAI_TIME_ZONE });
 }
 
 function jsonList(value: any) {
@@ -405,20 +407,6 @@ async function deleteAccountAction(formData: FormData) {
   revalidatePath("/admin/dashboard");
 }
 
-async function deleteSessionAction(formData: FormData) {
-  "use server";
-
-  await requireAdmin();
-
-  await prisma.session.delete({
-    where: {
-      sessionToken: String(formData.get("sessionToken")),
-    },
-  });
-
-  revalidatePath("/admin/dashboard");
-}
-
 async function deleteVerificationTokenAction(formData: FormData) {
   "use server";
 
@@ -448,7 +436,6 @@ export default async function AdminDashboardPage() {
     payments,
     reviews,
     accounts,
-    loginSessions,
     verificationTokens,
   ] = await Promise.all([
     prisma.user.findMany({
@@ -459,7 +446,8 @@ export default async function AdminDashboardPage() {
         assignedTutors: true,
         paymentConfirmations: true,
         accounts: true,
-        sessions: true,
+        _count: { select: { loginHistory: true } },
+        loginHistory: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 1, select: { createdAt: true } },
       },
     }),
 
@@ -530,15 +518,6 @@ export default async function AdminDashboardPage() {
       },
     }),
 
-    prisma.session.findMany({
-      orderBy: {
-        expires: "desc",
-      },
-      include: {
-        user: true,
-      },
-    }),
-
     prisma.verificationToken.findMany({
       orderBy: {
         expires: "desc",
@@ -580,6 +559,11 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
+      <nav aria-label="Admin sections" className="mb-6 flex flex-wrap gap-4 text-sm font-semibold text-blue-700">
+        <a href="#all-students" className="underline">All Students</a>
+        <a href="#all-users" className="underline">All Users</a>
+        <a href="#login-history" className="underline">Login History</a>
+      </nav>
       <section className="mb-12 grid gap-5 md:grid-cols-4">
         <Stat title="Total Users" value={users.length} />
         <Stat title="Students" value={students.length} />
@@ -592,7 +576,7 @@ export default async function AdminDashboardPage() {
         <Stat title="Payments" value={payments.length} />
         <Stat title="Reviews" value={reviews.length} />
         <Stat title="OAuth Accounts" value={accounts.length} />
-        <Stat title="Login Sessions" value={loginSessions.length} />
+        <Stat title="Recorded Logins" value={users.reduce((sum, user) => sum + user._count.loginHistory, 0)} />
         <Stat title="Verification Tokens" value={verificationTokens.length} />
 <Stat
   title="Session Revenue"
@@ -605,10 +589,20 @@ export default async function AdminDashboardPage() {
 />
       </section>
 
-      <Section title="All Users — View / Edit / Delete">
+      <Section id="all-students" title="All Students">
+        <AdminStudentsTable students={students.map(student => ({
+          id: student.id, name: student.name, email: student.email,
+          createdAt: student.createdAt.toISOString(),
+          tutors: student.assignedTutors.map(assignment => tutors.find(tutor => tutor.id === assignment.tutorId)?.name || "Tutor"),
+          bookings: student.studentBookings.length,
+          lastLogin: student.loginHistory[0]?.createdAt.toISOString() || null,
+        }))} />
+      </Section>
+
+      <Section id="all-users" title="All Users — View / Edit / Delete">
         <div className="grid gap-5">
           {users.map((user) => (
-            <Card key={user.id}>
+            <Card key={user.id} id={`user-${user.id}`}>
               <form action={updateUserAction} className="grid gap-4">
                 <input type="hidden" name="id" value={user.id} />
 
@@ -626,7 +620,7 @@ export default async function AdminDashboardPage() {
                   <Info label="Assignments" value={user.assignedTutors.length} />
                   <Info label="Payments" value={user.paymentConfirmations.length} />
                   <Info label="OAuth Accounts" value={user.accounts.length} />
-                  <Info label="Login Sessions" value={user.sessions.length} />
+                  <Info label="Recorded Logins" value={user._count.loginHistory} />
                   <Info label="Tutor Profile" value={user.tutor ? "Yes" : "No"} />
                 </div>
 
@@ -925,22 +919,8 @@ export default async function AdminDashboardPage() {
         </Table>
       </Section>
 
-      <Section title="Login Sessions — View / Delete">
-        <Table headers={["User", "Session Token", "Expires", "Delete"]}>
-          {loginSessions.map((session) => (
-            <tr key={session.sessionToken} className="border-t align-top">
-              <Td>{session?.user?.email || "N/A"}</Td>
-              <Td>{session.sessionToken}</Td>
-              <Td>{formatDate(session.expires)}</Td>
-              <Td>
-                <form action={deleteSessionAction}>
-                  <input type="hidden" name="sessionToken" value={session.sessionToken} />
-                  <DeleteButton label="Delete Session" />
-                </form>
-              </Td>
-            </tr>
-          ))}
-        </Table>
+      <Section id="login-history" title="Login History — Latest 100 Logins">
+        <AdminLoginHistory />
       </Section>
 
       <Section title="Verification Tokens — View / Delete">
@@ -982,17 +962,17 @@ function Stat({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="mb-12">
+    <section id={id} className="mb-12 scroll-mt-24">
       <h2 className="mb-4 text-2xl font-bold text-slate-900">{title}</h2>
       {children}
     </section>
   );
 }
 
-function Card({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-2xl border bg-white p-6 shadow-sm">{children}</div>;
+function Card({ children, id }: { children: React.ReactNode; id?: string }) {
+  return <div id={id} className="scroll-mt-24 rounded-2xl border bg-white p-6 shadow-sm">{children}</div>;
 }
 
 function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
