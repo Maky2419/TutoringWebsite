@@ -9,6 +9,35 @@ type Entry = {
   entityType: string; entityId: string | null; details: Record<string, unknown>;
 };
 type Cursor = { id: number; time: string } | null;
+// Proxies, deployment errors and failed route initialization can return empty or
+// HTML responses. Never expose a JSON parser exception to the administrator.
+export async function readActivityResponse(response: Response): Promise<{ events: Entry[]; nextCursor: Cursor }> {
+  if (response.status === 401 || response.status === 403 || response.redirected) {
+    throw new Error("Your admin session may have expired. Sign in as an administrator and try again.");
+  }
+  const text = await response.text();
+  let data: any;
+  try {
+    data = text.trim() ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
+  const fallback = `Activity History received an invalid server response (HTTP ${response.status}). Try Refresh latest. If it continues, check the server logs.`;
+  if (!response.ok) {
+    throw new Error(typeof data?.error === "string" && data.error.trim() ? data.error : fallback);
+  }
+  if (!data || !Array.isArray(data.events) || !data.events.every((event: any) =>
+    event && Number.isSafeInteger(event.id) && typeof event.createdAt === "string" && Number.isFinite(Date.parse(event.createdAt)) &&
+    typeof event.actorName === "string" && typeof event.actorRole === "string" && typeof event.action === "string" &&
+    typeof event.entityType === "string" && event.details && typeof event.details === "object" && !Array.isArray(event.details)
+  )) throw new Error(fallback);
+  const next = data.nextCursor;
+  if (next !== null && (!next || !Number.isSafeInteger(next.id) || next.id <= 0 || typeof next.time !== "string" || !Number.isFinite(Date.parse(next.time)))) {
+    throw new Error(fallback);
+  }
+  return { events: data.events, nextCursor: next };
+}
+
 const dateFormat = new Intl.DateTimeFormat("en-GB", { timeZone: DUBAI_TIME_ZONE, dateStyle: "medium", timeStyle: "medium" });
 const detailNames: Record<string, string> = { studentId: "Student ID", tutorId: "Tutor ID", assignmentId: "Assignment ID",
   sessionId: "Session ID", sessionIds: "Session IDs", sessionCount: "Sessions", amount: "Amount", amountPaid: "Amount paid",
@@ -36,8 +65,7 @@ export default function AdminActivityHistory() {
     async function load() {
       try {
         const res = await fetch(`/api/admin/activity?${params}`, { cache: "no-store", signal: controller.signal });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Unable to load activity history.");
+        const data = await readActivityResponse(res);
         if (!controller.signal.aborted) { setEvents(data.events); setNextCursor(data.nextCursor); }
       } catch (e) {
         if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "Unable to load activity history.");
