@@ -93,9 +93,31 @@ export default async function StudentDashboardPage() {
         durationHours: Number(s.durationHours),
         amount: Number(s.amount),
         status: s.status,
+        cancellationStatus: s.cancellationStatus,
+        cancellationReason: s.cancellationReason,
+        cancellationRequestedAt: s.cancellationRequestedAt?.toISOString() ?? null,
+        cancellationReviewedAt: s.cancellationReviewedAt?.toISOString() ?? null,
+        cancellationVersion: s.cancellationVersion,
       })),
     };
   });
+
+  // Include accepted requests here even though cancelled lessons leave active lists.
+  const cancellationSessions = rawAssignments.flatMap(assignment =>
+    assignment.sessions.filter(s => s.cancellationStatus).map(s => ({
+      id: s.id, lessonDate: s.lessonDate.toISOString(),
+      startsAt: s.startsAt?.toISOString() ?? null, endsAt: s.endsAt?.toISOString() ?? null,
+      startTime: s.startTime, endTime: s.endTime, notes: s.notes,
+      durationHours: Number(s.durationHours), amount: Number(s.amount), status: s.status,
+      tutorName: assignment.tutor.name, tutorEmail: assignment.tutor.email,
+      tutorRate: assignment.tutor.hourlyRate, assignmentTotal: Number(assignment.accumulatedTotal),
+        cancellationStatus: s.cancellationStatus,
+        cancellationReason: s.cancellationReason,
+        cancellationRequestedAt: s.cancellationRequestedAt?.toISOString() ?? null,
+        cancellationReviewedAt: s.cancellationReviewedAt?.toISOString() ?? null,
+        cancellationVersion: s.cancellationVersion,
+    }))
+  );
 
   const bookings = rawBookings.map((b) => ({
     id: b.id,
@@ -164,6 +186,7 @@ export default async function StudentDashboardPage() {
       bookings={bookings}
       allSessions={allSessions}
       nextSession={nextSession}
+      cancellationSessions={cancellationSessions}
       stats={{
         totalSpent,
         totalConfirmedPaid,

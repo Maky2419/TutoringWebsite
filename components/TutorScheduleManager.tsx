@@ -1,4 +1,5 @@
 "use client";
+import type { CancellationInfo } from "@/lib/cancellationShared";
 import SessionTimeDisplay from "./SessionTimeDisplay";
 import { TimeZoneSelector, useTimeZone } from "./TimeZoneProvider";
 import { addCalendarDays, sessionInstants, sessionTimeData, zonedParts } from "@/lib/sessionTime";
@@ -19,7 +20,7 @@ type AssignedStudent = {
   student: Student;
 };
 
-type TeachingSession = {
+type TeachingSession = CancellationInfo & {
   id: number;
   lessonDate: string;
   startsAt?: string | Date | null;
@@ -53,7 +54,7 @@ function addOneHour(time: string) {
   return `${String(nextHour).padStart(2, "0")}:${minuteString}`;
 }
 
-export default function TutorScheduleManager() {
+export default function TutorScheduleManager({ cancellationRevision = 0 }: { cancellationRevision?: number }) {
   const { timeZone, ready } = useTimeZone();
   const router = useRouter();
   const [error, setError] = useState("");
@@ -142,7 +143,7 @@ export default function TutorScheduleManager() {
 
   useEffect(() => {
     loadSchedule(selectedStudentId);
-  }, [selectedStudentId]);
+  }, [selectedStudentId, cancellationRevision]);
 
   async function assignStudent() {
     if (!selectedStudentId) return;
@@ -538,9 +539,15 @@ export default function TutorScheduleManager() {
                               </p>
                             )}
 
+                            {session.cancellationStatus && (
+                              <p className="mt-2 text-xs font-semibold text-amber-800">
+                                Cancellation {session.cancellationStatus}. {session.cancellationStatus === "pending" ? "Review this request in Cancellation Requests above." : ""}
+                              </p>
+                            )}
+                            {session.cancellationReason && <p className="mt-1 whitespace-pre-wrap break-words text-xs text-slate-600">Reason: {session.cancellationReason}</p>}
                             {isCancelled && (
                               <p className="mt-2 text-xs font-bold text-red-700">
-                                Cancelled by student
+                                Session cancelled
                               </p>
                             )}
                           </div>
@@ -560,7 +567,7 @@ export default function TutorScheduleManager() {
                               )}
                             </span>
 
-                            {!isCancelled && (
+                            {!isCancelled && session.cancellationStatus !== "pending" && (
                               <>
                                 <button
                                   type="button"

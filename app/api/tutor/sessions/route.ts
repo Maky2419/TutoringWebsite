@@ -182,8 +182,9 @@ export async function PUT(req: Request) {
   const amount = durationHours * tutor.hourlyRate;
 
   const updated = await prisma.$transaction(async tx => {
-    const updated = await tx.teachingSession.update({
-        where: { id: sessionId },
+    const changed = await tx.teachingSession.updateMany({
+        where: { id: sessionId, status: { not: "cancelled" }, cancellationVersion: existing.cancellationVersion,
+          OR: [{ cancellationStatus: null }, { cancellationStatus: { not: "pending" } }] },
         data: {
             ...timing,
             notes: notes || null,
@@ -191,6 +192,8 @@ export async function PUT(req: Request) {
             amount,
         },
     });
+    if (!changed.count) return null;
+    const updated = await tx.teachingSession.findUniqueOrThrow({ where: { id: sessionId } });
     await recalculateAssignmentTotal(tx, existing.assignmentId);
     await recordActivity(tx, { actorId: tutor.userId, action: "SESSION_UPDATED", entityType: "TeachingSession", entityId: sessionId,
         details: { assignmentId: existing.assignmentId, studentId: existing.assignment.studentId,
@@ -198,6 +201,7 @@ export async function PUT(req: Request) {
     return updated;
   });
 
+  if (!updated) return NextResponse.json({ error: "This session changed or has a pending cancellation. Refresh and review any cancellation request before editing." }, { status: 409 });
   return NextResponse.json({ ok: true, session: updated });
 }
 
@@ -226,14 +230,18 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  await prisma.$transaction(async tx => {
-    await tx.teachingSession.delete({
-        where: { id: sessionId },
+  const deleted = await prisma.$transaction(async tx => {
+    const changed = await tx.teachingSession.deleteMany({
+        where: { id: sessionId, cancellationVersion: existing.cancellationVersion,
+          OR: [{ cancellationStatus: null }, { cancellationStatus: { not: "pending" } }] },
     });
+    if (!changed.count) return false;
     await recalculateAssignmentTotal(tx, existing.assignmentId);
     await recordActivity(tx, { actorId: tutor.userId, action: "SESSION_DELETED", entityType: "TeachingSession", entityId: sessionId,
         details: { assignmentId: existing.assignmentId, studentId: existing.assignment.studentId } });
+    return true;
   });
 
+  if (!deleted) return NextResponse.json({ error: "This session changed or has a pending cancellation. Refresh and review any cancellation request before deleting." }, { status: 409 });
   return NextResponse.json({ ok: true });
 }

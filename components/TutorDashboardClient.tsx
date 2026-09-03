@@ -1,4 +1,6 @@
 "use client";
+import CancellationRequests from "./CancellationRequests";
+import type { CancellationInfo } from "@/lib/cancellationShared";
 import SessionTimeDisplay from "./SessionTimeDisplay";
 import { TimeZoneSelector, useTimeZone } from "./TimeZoneProvider";
 import { sessionInstants, formatSessionRange, DUBAI_TIME_ZONE } from "@/lib/sessionTime";
@@ -16,7 +18,7 @@ type Student = {
   email: string | null;
 };
 
-type SessionBase = {
+type SessionBase = CancellationInfo & {
   id: number;
   lessonDate: Date | string;
   startsAt?: string | Date | null;
@@ -172,6 +174,8 @@ export default function TutorDashboardClient({
   const [amountPaid, setAmountPaid] = useState("");
   const [paymentNote, setPaymentNote] = useState("");
 
+  const [scheduleRevision, setScheduleRevision] = useState(0);
+
   const [invoiceStudentId, setInvoiceStudentId] = useState("");
 
   function downloadStudentInvoice() {
@@ -298,6 +302,10 @@ export default function TutorDashboardClient({
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-8">
+          <CancellationRequests sessions={allSessions} tutor onReviewed={() => setScheduleRevision(v => v + 1)} />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
@@ -557,7 +565,7 @@ export default function TutorDashboardClient({
         <div className="mt-8">
           <SectionCard
             title="Tutor Calendar"
-            subtitle="Green sessions are active. Red sessions were cancelled by students."
+            subtitle="Green sessions are active. Red sessions are cancelled. Student cancellation requests require your approval."
           >
             <TutorCalendar sessions={normalizedCalendarSessions} />
           </SectionCard>
@@ -565,7 +573,7 @@ export default function TutorDashboardClient({
 
         <div className="mt-8 grid gap-5 sm:p-7 md:p-8 xl:grid-cols-[1.35fr_1fr]">
           <div className="rounded-[28px] border border-blue-100 bg-white p-6 shadow-sm">
-            <TutorScheduleManager />
+            <TutorScheduleManager cancellationRevision={scheduleRevision} />
           </div>
 
           <div className="space-y-8">

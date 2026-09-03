@@ -125,6 +125,13 @@ model TeachingSession {
   amount        Decimal  @db.Decimal(10, 2)
   status        String   @default("scheduled")
 
+  // Cancellation is a request until the assigned tutor accepts it.
+  cancellationStatus      String?  @db.VarChar(20)
+  cancellationReason      String?  @db.Text
+  cancellationRequestedAt DateTime?
+  cancellationReviewedAt  DateTime?
+  cancellationVersion     Int      @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

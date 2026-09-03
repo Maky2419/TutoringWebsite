@@ -5,7 +5,9 @@ import { sessionInstants } from "@/lib/sessionTime";
 import Link from "next/link";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import StudentCancellationButton from "./StudentCancellationButton";
+import CancellationRequests from "./CancellationRequests";
+import type { CancellationInfo } from "@/lib/cancellationShared";
 import StudentScheduleView from "./StudentScheduleView";
 import { downloadInvoice } from "@/lib/downloadInvoice";
 import { Money } from "@/components/CurrencyProvider";
@@ -26,7 +28,7 @@ type Booking = {
   tutor: Tutor;
 };
 
-type TeachingSession = {
+type TeachingSession = CancellationInfo & {
   id: number;
   lessonDate: Date | string;
   startsAt?: string | Date | null;
@@ -73,6 +75,7 @@ type Props = {
   bookings: Booking[];
   allSessions: TeachingSession[];
   nextSession: TeachingSession | null;
+  cancellationSessions: TeachingSession[];
   stats: {
     totalSpent: number;
     totalConfirmedPaid: number;
@@ -144,28 +147,9 @@ export default function StudentDashboardClient({
   assignments,
   allSessions,
   nextSession,
+  cancellationSessions,
   stats,
 }: Props) {
-  const router = useRouter();
-
-  async function cancelSession(sessionId: number) {
-    const confirmed = confirm("Are you sure you want to cancel this session?");
-    if (!confirmed) return;
-
-    const res = await fetch(`/api/student/sessions/${sessionId}`, {
-      method: "PATCH",
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || "Failed to cancel session.");
-      return;
-    }
-
-    router.refresh();
-  }
-
   const totalHours = useMemo(() => {
     return allSessions.reduce(
       (sum, session) => sum + Number(session.durationHours || 0),
@@ -224,12 +208,7 @@ export default function StudentDashboardClient({
                   <p className="mt-2 text-sm font-bold text-green-600">
 Session amount: <Money amountUSD={nextSession.amount} />                  </p>
 
-                  <button
-                    onClick={() => cancelSession(nextSession.id)}
-                    className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100"
-                  >
-                    Cancel Session
-                  </button>
+                  <StudentCancellationButton key={nextSession.id} session={nextSession} />
                 </>
               ) : (
                 <p className="mt-2 text-sm text-slate-600">
@@ -239,6 +218,8 @@ Session amount: <Money amountUSD={nextSession.amount} />                  </p>
             </div>
           </div>
         </div>
+
+        <div className="mt-8"><CancellationRequests sessions={cancellationSessions} /></div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard

@@ -1,12 +1,14 @@
 "use client";
 
+import StudentCancellationButton from "./StudentCancellationButton";
+import type { CancellationInfo } from "@/lib/cancellationShared";
 import SessionTimeDisplay from "./SessionTimeDisplay";
 import { useTimeZone } from "./TimeZoneProvider";
 import { sessionDateKey, sessionInstants, zonedParts } from "@/lib/sessionTime";
 import { useEffect, useMemo, useState } from "react";
 import { Money } from "@/components/CurrencyProvider";
 
-type StudentSession = {
+type StudentSession = CancellationInfo & {
   id: number;
   lessonDate: string | Date;
   startsAt?: string | Date | null;
@@ -63,24 +65,6 @@ export default function StudentScheduleView({
     });
   }
 
-  async function cancelSession(sessionId: number) {
-    const confirmed = confirm("Are you sure you want to cancel this session?");
-    if (!confirmed) return;
-
-    const res = await fetch(`/api/student/sessions/${sessionId}`, {
-      method: "PATCH",
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || "Failed to cancel session.");
-      return;
-    }
-
-    window.location.reload();
-  }
-
   if (!ready) return <p>Detecting your time zone…</p>;
 
   return (
@@ -112,12 +96,7 @@ export default function StudentScheduleView({
                   </p>
                 </div>
 
-                <button
-                  onClick={() => cancelSession(session.id)}
-                  className="rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-100"
-                >
-                  Cancel Session
-                </button>
+                <StudentCancellationButton session={session} />
               </div>
             </div>
           ))

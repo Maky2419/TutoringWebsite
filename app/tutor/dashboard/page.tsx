@@ -108,6 +108,11 @@ export default async function TutorDashboardPage() {
           durationHours: Number(s.durationHours),
           amount: Number(s.amount),
           status: s.status,
+        cancellationStatus: s.cancellationStatus,
+        cancellationReason: s.cancellationReason,
+        cancellationRequestedAt: s.cancellationRequestedAt?.toISOString() ?? null,
+        cancellationReviewedAt: s.cancellationReviewedAt?.toISOString() ?? null,
+        cancellationVersion: s.cancellationVersion,
           amountPaid: sessionAmountPaid,
           paymentConfirmed: sessionAmountPaid >= Number(s.amount),
         };
