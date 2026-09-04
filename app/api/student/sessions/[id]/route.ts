@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CancellationError, cancellationReason, requestCancellation } from "@/lib/cancellation";
+import { emailTutorCancellationRequest } from "@/lib/cancellationEmails";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -14,8 +15,21 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   try {
     const body = await request.json().catch(() => null);
     const reason = cancellationReason(body?.reason);
-    await prisma.$transaction(tx => requestCancellation(tx, (session.user as any).id, sessionId, reason));
-    return NextResponse.json({ success: true, cancellationStatus: "pending" });
+    const requestedSession = await prisma.$transaction(async tx => {
+      await requestCancellation(tx, (session.user as any).id, sessionId, reason);
+      return tx.teachingSession.findUniqueOrThrow({
+        where: { id: sessionId },
+        include: { assignment: { include: { student: true, tutor: true } } },
+      });
+    });
+    let emailSent = false;
+    try {
+      await emailTutorCancellationRequest(requestedSession);
+      emailSent = true;
+    } catch (emailError) {
+      console.error("Cancellation request saved, but tutor email failed", { sessionId, emailError });
+    }
+    return NextResponse.json({ success: true, cancellationStatus: "pending", emailSent });
   } catch (error) {
     if (error instanceof CancellationError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error("Cancellation request failed", error);

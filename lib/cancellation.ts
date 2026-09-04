@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { recordActivity } from "./activity";
 
-import { MAX_CANCELLATION_REASON } from "./cancellationShared";
+import { CANCELLATION_DELETE_DELAY_MS, MAX_CANCELLATION_REASON } from "./cancellationShared";
 
 export class CancellationError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -55,4 +55,49 @@ export async function reviewCancellation(tx: Prisma.TransactionClient, tutorId: 
   if (decision === "accepted") {
     await recordActivity(tx, { actorId, action: "SESSION_CANCELLED", entityType: "TeachingSession", entityId: sessionId, details });
   }
+}
+
+export async function deleteReviewedCancellation(
+  tx: Prisma.TransactionClient,
+  tutorId: number,
+  actorId: string,
+  sessionId: number,
+  version: number,
+) {
+  const row = await tx.teachingSession.findFirst({
+    where: { id: sessionId, assignment: { tutorId } },
+    include: { assignment: true },
+  });
+  if (!row) throw new CancellationError("Session not found.", 404);
+  if ((row.cancellationStatus !== "accepted" && row.cancellationStatus !== "declined")
+      || row.cancellationVersion !== version || !row.cancellationReviewedAt) {
+    throw new CancellationError("This reviewed request has changed or was already deleted. Refresh to see its current status.", 409);
+  }
+  const availableAt = row.cancellationReviewedAt.getTime() + CANCELLATION_DELETE_DELAY_MS;
+  if (Date.now() < availableAt) {
+    throw new CancellationError("A cancellation request can be deleted five minutes after it is accepted or declined.", 409);
+  }
+  const changed = await tx.teachingSession.updateMany({
+    where: {
+      id: sessionId,
+      cancellationStatus: { in: ["accepted", "declined"] },
+      cancellationVersion: version,
+      cancellationReviewedAt: { lte: new Date(Date.now() - CANCELLATION_DELETE_DELAY_MS) },
+    },
+    data: {
+      cancellationStatus: null,
+      cancellationReason: null,
+      cancellationRequestedAt: null,
+      cancellationReviewedAt: null,
+      cancellationVersion: { increment: 1 },
+    },
+  });
+  if (!changed.count) throw new CancellationError("This request changed before it could be deleted. Refresh and try again.", 409);
+  await recordActivity(tx, {
+    actorId,
+    action: "SESSION_CANCELLATION_DELETED",
+    entityType: "TeachingSession",
+    entityId: sessionId,
+    details: { assignmentId: row.assignmentId, studentId: row.assignment.studentId, tutorId, status: "deleted" },
+  });
 }

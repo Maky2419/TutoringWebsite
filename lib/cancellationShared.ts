@@ -1,4 +1,5 @@
 export const MAX_CANCELLATION_REASON = 2000;
+export const CANCELLATION_DELETE_DELAY_MS = 5 * 60 * 1000;
 
 export type CancellationInfo = {
   cancellationStatus?: string | null;
@@ -7,4 +8,3 @@ export type CancellationInfo = {
   cancellationReviewedAt?: string | Date | null;
   cancellationVersion?: number;
 };
-

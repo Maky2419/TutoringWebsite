@@ -5,6 +5,7 @@ export const ACTIVITY_LABELS = {
   SESSION_CANCELLATION_REQUESTED: "Cancellation requested",
   SESSION_CANCELLATION_ACCEPTED: "Cancellation accepted",
   SESSION_CANCELLATION_DECLINED: "Cancellation declined",
+  SESSION_CANCELLATION_DELETED: "Cancellation request deleted",
   PAYMENT_CONFIRMED: "Payment confirmed", PAYMENT_UPDATED: "Payment updated", PAYMENT_DELETED: "Payment deleted",
   INVOICE_GENERATED: "Invoice generated", PASSWORD_UPDATED: "Password updated",
   REVIEW_CREATED: "Review created", REVIEW_UPDATED: "Review updated", REVIEW_DELETED: "Review deleted",
