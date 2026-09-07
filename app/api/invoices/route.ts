@@ -25,7 +25,8 @@ export async function POST(req: Request) {
     });
     const pdf = buildInvoice({ studentName: assignment.student.name || "Student", tutorName: assignment.tutor.name,
       subject: assignment.tutor.category || "Tutoring", amountPaid: Number(payments._sum.amountPaid || 0),
-      sessions: assignment.sessions.map(row => ({ ...row, amount: Number(row.amount), durationHours: Number(row.durationHours) })),
+      sessions: assignment.sessions.map(row => ({ ...row, amount: Number(row.amount), durationHours: Number(row.durationHours),
+        hourlyRateApplied: row.hourlyRateApplied === null ? null : Number(row.hourlyRateApplied) })),
     });
     if (!pdf) return { status: 409 as const };
     await recordActivity(tx, { actorId: user.id, action: "INVOICE_GENERATED", entityType: "Assignment", entityId: assignmentId,

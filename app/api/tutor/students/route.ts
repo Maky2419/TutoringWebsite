@@ -80,6 +80,64 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true });
 }
 
+export async function PATCH(req: Request) {
+  const tutor = await getTutorFromSession();
+
+  if (!tutor) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const studentId = String(body.studentId || "").trim();
+  const rawRate = body.customHourlyRate;
+  const customHourlyRate = rawRate === null || rawRate === "" ? null : Number(rawRate);
+
+  if (!studentId) {
+    return NextResponse.json({ error: "studentId is required" }, { status: 400 });
+  }
+
+  if (customHourlyRate !== null && (!Number.isFinite(customHourlyRate) || customHourlyRate <= 0 || customHourlyRate > 100000)) {
+    return NextResponse.json({ error: "Enter a valid hourly rate greater than 0." }, { status: 400 });
+  }
+
+  const assignment = await prisma.$transaction(async tx => {
+    const existing = await tx.studentTutorAssignment.findUnique({
+      where: { tutorId_studentId: { tutorId: tutor.id, studentId } },
+    });
+    if (!existing) return null;
+
+    const updated = await tx.studentTutorAssignment.update({
+      where: { id: existing.id },
+      data: { customHourlyRate },
+    });
+    await recordActivity(tx, {
+      actorId: tutor.userId,
+      action: "ASSIGNMENT_UPDATED",
+      entityType: "Assignment",
+      entityId: existing.id,
+      details: {
+        tutorId: tutor.id,
+        studentId,
+        customHourlyRate,
+        effectiveRate: customHourlyRate ?? tutor.hourlyRate,
+        appliesTo: "future sessions",
+        currency: "USD",
+      },
+    });
+    return updated;
+  });
+
+  if (!assignment) {
+    return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    customHourlyRate: assignment.customHourlyRate,
+    effectiveHourlyRate: Number(assignment.customHourlyRate ?? tutor.hourlyRate),
+  });
+}
+
 export async function DELETE(req: Request) {
   const tutor = await getTutorFromSession();
 

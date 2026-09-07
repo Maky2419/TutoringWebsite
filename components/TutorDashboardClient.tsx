@@ -36,6 +36,8 @@ type AssignedStudent = {
   id: number;
   studentId: string;
   accumulatedTotal: string | number;
+  customHourlyRate: string | number | null;
+  effectiveHourlyRate: number;
   student: Student;
   sessions: SessionBase[];
 };
@@ -554,6 +556,10 @@ export default function TutorDashboardClient({
                     <p className="mt-3 text-sm font-bold text-green-600">
                       Total billed:{" "}
                       <Money amountUSD={assignment.accumulatedTotal} />
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">
+                      {assignment.customHourlyRate == null ? "Default" : "Custom"} rate:{" "}
+                      <Money amountUSD={assignment.effectiveHourlyRate} suffix="/hr" />
                     </p>
                   </div>
                 ))

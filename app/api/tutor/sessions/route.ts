@@ -71,7 +71,8 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     assignment,
-    hourlyRate: tutor.hourlyRate,
+    hourlyRate: Number(assignment.customHourlyRate ?? tutor.hourlyRate),
+    tutorDefaultHourlyRate: tutor.hourlyRate,
   });
 }
 
@@ -118,12 +119,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Please assign the student first" }, { status: 400 });
   }
 
+  const appliedHourlyRate = Number(assignment.customHourlyRate ?? tutor.hourlyRate);
+
   const sessions = await prisma.$transaction(async tx => {
     const rows = [];
     for (const timing of timings) {
         rows.push(await tx.teachingSession.create({ data: {
                 assignmentId: assignment.id, ...timing, notes: notes || null,
-                amount: timing.durationHours * tutor.hourlyRate,
+                hourlyRateApplied: appliedHourlyRate,
+                amount: timing.durationHours * appliedHourlyRate,
             } }));
     }
     const total = await tx.teachingSession.aggregate({
@@ -179,7 +183,14 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid session time" }, { status: 400 });
   }
   const { durationHours } = timing;
-  const amount = durationHours * tutor.hourlyRate;
+  // Keep the lesson's original rate when its time or duration is edited.
+  const appliedHourlyRate = Number(
+    existing.hourlyRateApplied ??
+      (Number(existing.durationHours) > 0
+        ? Number(existing.amount) / Number(existing.durationHours)
+        : existing.assignment.customHourlyRate ?? tutor.hourlyRate)
+  );
+  const amount = durationHours * appliedHourlyRate;
 
   const updated = await prisma.$transaction(async tx => {
     const changed = await tx.teachingSession.updateMany({
@@ -189,6 +200,7 @@ export async function PUT(req: Request) {
             ...timing,
             notes: notes || null,
             durationHours,
+            hourlyRateApplied: appliedHourlyRate,
             amount,
         },
     });

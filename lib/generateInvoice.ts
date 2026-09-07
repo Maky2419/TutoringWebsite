@@ -13,6 +13,7 @@ type InvoiceSession = {
   notes: string | null;
   amount: string | number;
   durationHours: string | number;
+  hourlyRateApplied?: string | number | null;
 };
 
 type InvoiceData = {
@@ -178,7 +179,8 @@ export function buildInvoice({
   doc.text("Date", margin + 16, y + 8);
   doc.text("Time (Dubai)", margin + 52, y + 8);
   doc.text("Hours", margin + 91, y + 8);
-  doc.text("Notes", margin + 112, y + 8);
+  doc.text("Rate", margin + 109, y + 8);
+  doc.text("Notes", margin + 130, y + 8);
   doc.text("Due", pageWidth - margin - 4, y + 8, { align: "right" });
 
   y += 18;
@@ -215,14 +217,19 @@ export function buildInvoice({
     }
     doc.text(`${Number(session.durationHours).toFixed(2)}`, margin + 91, y);
 
+    const rate = session.hourlyRateApplied == null
+      ? Number(session.amount) / Number(session.durationHours)
+      : Number(session.hourlyRateApplied);
+    doc.text(`$${Number.isFinite(rate) ? rate.toFixed(2) : "0.00"}`, margin + 109, y);
+
     const notes = session.notes || "Tutoring session";
     const clippedNotes =
-      notes.length > 24 ? `${notes.substring(0, 24)}...` : notes;
+      notes.length > 14 ? `${notes.substring(0, 14)}...` : notes;
 
-    doc.text(clippedNotes, margin + 112, y);
+    doc.text(clippedNotes, margin + 130, y);
     if (session.appliedPayment > 0) {
       doc.setFontSize(7);
-      doc.text(`Paid $${session.appliedPayment.toFixed(2)} of $${session.originalAmount.toFixed(2)}`, margin + 112, y + 5);
+      doc.text(`Paid $${session.appliedPayment.toFixed(2)} of $${session.originalAmount.toFixed(2)}`, margin + 130, y + 5);
       doc.setFontSize(9);
     }
 

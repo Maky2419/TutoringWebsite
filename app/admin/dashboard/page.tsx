@@ -266,6 +266,11 @@ async function updateAssignmentAction(formData: FormData) {
   "use server";
 
   const session = await requireAdmin();
+  const rawCustomRate = String(formData.get("customHourlyRate") || "").trim();
+  const customHourlyRate = rawCustomRate === "" ? null : Number(rawCustomRate);
+  if (customHourlyRate !== null && (!Number.isFinite(customHourlyRate) || customHourlyRate <= 0)) {
+    throw new Error("Custom hourly rate must be greater than 0.");
+  }
 
   await auditChange({ actorId: (session.user as any).id, action: "ASSIGNMENT_UPDATED", entityType: "Assignment", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
     await tx.studentTutorAssignment.update({
@@ -274,6 +279,7 @@ async function updateAssignmentAction(formData: FormData) {
             tutorId: Number(formData.get("tutorId")),
             studentId: String(formData.get("studentId")),
             accumulatedTotal: String(formData.get("accumulatedTotal") || "0"),
+            customHourlyRate,
         },
     });
   });
@@ -303,22 +309,34 @@ async function updateTeachingSessionAction(formData: FormData) {
   "use server";
 
   const session = await requireAdmin();
+  const timing = sessionTimeData({
+    lessonDate: String(formData.get("lessonDate") || ""),
+    endDate: String(formData.get("endDate") || ""),
+    startTime: String(formData.get("startTime") || ""),
+    endTime: String(formData.get("endTime") || ""),
+    timeZone: DUBAI_TIME_ZONE,
+  });
+  const amount = Number(formData.get("amount") || 0);
+  if (!Number.isFinite(amount) || amount < 0) throw new Error("Session amount must be a valid non-negative number.");
 
   await auditChange({ actorId: (session.user as any).id, action: "SESSION_UPDATED", entityType: "TeachingSession", entityId: String(formData.get("id") || ""), details: { fields: Array.from(formData.keys()) }, }, async tx => {
-    await tx.teachingSession.update({
+    const updated = await tx.teachingSession.update({
         where: { id: Number(formData.get("id")) },
         data: {
-            ...sessionTimeData({
-                lessonDate: String(formData.get("lessonDate") || ""),
-                endDate: String(formData.get("endDate") || ""),
-                startTime: String(formData.get("startTime") || ""),
-                endTime: String(formData.get("endTime") || ""),
-                timeZone: DUBAI_TIME_ZONE,
-            }),
+            ...timing,
             notes: String(formData.get("notes") || ""),
-            amount: String(formData.get("amount") || "0"),
+            amount,
+            hourlyRateApplied: timing.durationHours > 0 ? amount / timing.durationHours : null,
             status: String(formData.get("status") || "scheduled"),
         },
+    });
+    const totals = await tx.teachingSession.aggregate({
+      where: { assignmentId: updated.assignmentId, status: { not: "cancelled" } },
+      _sum: { amount: true },
+    });
+    await tx.studentTutorAssignment.update({
+      where: { id: updated.assignmentId },
+      data: { accumulatedTotal: totals._sum.amount || 0 },
     });
   });
 
@@ -761,7 +779,7 @@ export default async function AdminDashboardPage() {
               <form action={updateAssignmentAction} className="grid gap-4">
                 <input type="hidden" name="id" value={assignment.id} />
 
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-4">
                   <StudentSelect students={students} defaultValue={assignment.studentId} />
                   <TutorSelect tutors={tutors} defaultValue={assignment.tutorId} />
                   <Field
@@ -769,6 +787,12 @@ export default async function AdminDashboardPage() {
                     name="accumulatedTotal"
                     type="number"
                     defaultValue={String(assignment.accumulatedTotal)}
+                  />
+                  <Field
+                    label="Custom Hourly Rate (blank = tutor default)"
+                    name="customHourlyRate"
+                    type="number"
+                    defaultValue={assignment.customHourlyRate == null ? "" : String(assignment.customHourlyRate)}
                   />
                 </div>
 

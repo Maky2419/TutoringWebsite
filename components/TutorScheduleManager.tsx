@@ -17,6 +17,7 @@ type Student = {
 type AssignedStudent = {
   id: number;
   studentId: string;
+  customHourlyRate: string | number | null;
   student: Student;
 };
 
@@ -38,10 +39,12 @@ type AssignmentResponse = {
   assignment: {
     id: number;
     accumulatedTotal: string | number;
+    customHourlyRate: string | number | null;
     student: Student;
     sessions: TeachingSession[];
   };
   hourlyRate: number;
+  tutorDefaultHourlyRate: number;
 };
 
 function addOneHour(time: string) {
@@ -66,6 +69,8 @@ export default function TutorScheduleManager({ cancellationRevision = 0 }: { can
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [customRate, setCustomRate] = useState("");
+  const [rateMessage, setRateMessage] = useState("");
   const [repeatFourWeeks, setRepeatFourWeeks] = useState(false);
 
   const [form, setForm] = useState({
@@ -129,6 +134,8 @@ export default function TutorScheduleManager({ cancellationRevision = 0 }: { can
     const data = await res.json();
 
     setScheduleData(res.ok ? data : null);
+    setCustomRate(res.ok && data.assignment.customHourlyRate != null ? String(data.assignment.customHourlyRate) : "");
+    setRateMessage("");
   }
 
   useEffect(() => {
@@ -162,6 +169,32 @@ export default function TutorScheduleManager({ cancellationRevision = 0 }: { can
     await loadSchedule(selectedStudentId);
 
     setSaving(false);
+  }
+
+  async function saveCustomRate() {
+    if (!selectedStudentId || saving) return;
+    setSaving(true);
+    setRateMessage("");
+    try {
+      const res = await fetch("/api/tutor/students", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: selectedStudentId,
+          customHourlyRate: customRate.trim() === "" ? null : Number(customRate),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save the rate.");
+      await loadStudents();
+      await loadSchedule(selectedStudentId);
+      setRateMessage(customRate.trim() === "" ? "Using the tutor default rate." : "Custom rate saved for future lessons.");
+      router.refresh();
+    } catch (error) {
+      setRateMessage(error instanceof Error ? error.message : "Failed to save the rate.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function saveSession(e: FormEvent) {
@@ -338,6 +371,41 @@ export default function TutorScheduleManager({ cancellationRevision = 0 }: { can
               {selectedStudent?.email ||
                 "Choose a student from the left to start scheduling."}
             </p>
+            {scheduleData && (
+              <div className="mt-4 rounded-2xl border border-blue-100 bg-white p-4">
+                <label className="block text-sm font-bold text-slate-950" htmlFor="custom-hourly-rate">
+                  Student hourly rate (USD)
+                </label>
+                <p className="mt-1 text-xs text-slate-500">
+                  Leave blank to use the tutor default of ${scheduleData.tutorDefaultHourlyRate.toFixed(2)}/hr. Changes apply only to future lessons.
+                </p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    id="custom-hourly-rate"
+                    type="number"
+                    min="0.01"
+                    max="100000"
+                    step="0.01"
+                    value={customRate}
+                    onChange={(e) => setCustomRate(e.target.value)}
+                    placeholder={String(scheduleData.tutorDefaultHourlyRate)}
+                    className="min-w-0 flex-1 rounded-xl border border-blue-100 px-3 py-2 text-sm text-slate-950 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={saveCustomRate}
+                    disabled={saving}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40"
+                  >
+                    Save rate
+                  </button>
+                </div>
+                <p className="mt-2 text-xs font-semibold text-blue-700">
+                  Effective rate: ${scheduleData.hourlyRate.toFixed(2)}/hr
+                </p>
+                {rateMessage && <p className="mt-2 text-xs text-slate-600">{rateMessage}</p>}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
@@ -409,6 +477,11 @@ export default function TutorScheduleManager({ cancellationRevision = 0 }: { can
                     className="mt-1 w-full rounded-xl border border-blue-100 bg-white px-3 py-3 text-sm text-slate-950" />
                 </label>
                 {preview?.session && <div className="rounded-xl bg-blue-50 p-3 text-sm text-blue-900"><SessionTimeDisplay session={preview.session} /></div>}
+                {preview?.session && scheduleData && (
+                  <p className="text-sm font-semibold text-green-700">
+                    Lesson charge: <Money amountUSD={preview.session.durationHours * scheduleData.hourlyRate} /> at <Money amountUSD={scheduleData.hourlyRate} suffix="/hr" />
+                  </p>
+                )}
                 {preview?.error && <p role="alert" className="text-sm text-red-700">{preview.error}</p>}
                 {!form.sessionId && (
                   <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">

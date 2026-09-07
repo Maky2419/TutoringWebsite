@@ -76,6 +76,8 @@ export default async function TutorDashboardPage() {
       id: assignment.id,
       studentId: assignment.studentId,
       accumulatedTotal: Number(assignment.accumulatedTotal),
+      customHourlyRate: assignment.customHourlyRate === null ? null : Number(assignment.customHourlyRate),
+      effectiveHourlyRate: Number(assignment.customHourlyRate ?? tutor.hourlyRate),
       amountPaid: studentTotalPaid,
       amountRemaining: Math.max(
         Number(assignment.accumulatedTotal) - studentTotalPaid,
@@ -107,6 +109,7 @@ export default async function TutorDashboardPage() {
           notes: s.notes,
           durationHours: Number(s.durationHours),
           amount: Number(s.amount),
+          hourlyRateApplied: s.hourlyRateApplied === null ? null : Number(s.hourlyRateApplied),
           status: s.status,
         cancellationStatus: s.cancellationStatus,
         cancellationReason: s.cancellationReason,

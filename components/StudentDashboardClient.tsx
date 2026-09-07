@@ -51,6 +51,8 @@ type TeachingSession = CancellationInfo & {
 type Assignment = {
   id: number;
   accumulatedTotal: string | number;
+  customHourlyRate: string | number | null;
+  effectiveHourlyRate: number;
   amountPaid?: string | number;
   remainingBalance?: string | number;
   tutor: Tutor;
@@ -335,7 +337,7 @@ value={<Money amountUSD={stats.totalSpent} />}
 
                         <div className="flex flex-wrap gap-3">
                           <div className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                            Rate: <Money amountUSD={item.tutor.hourlyRate} suffix="/hr" />
+                            Rate: <Money amountUSD={item.effectiveHourlyRate} suffix="/hr" />
                           </div>
 
                           <div className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700">
