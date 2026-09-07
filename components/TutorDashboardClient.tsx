@@ -257,8 +257,11 @@ export default function TutorDashboardClient({
         sourceTimeZone: session.sourceTimeZone,
         startTime: session.startTime,
     endTime: session.endTime,
+    studentId: session.studentId,
     studentName: session.studentName,
     studentEmail: session.studentEmail,
+    notes: session.notes,
+    durationHours: Number(session.durationHours),
     amount: Number(session.amount),
     status: session.status,
   }));

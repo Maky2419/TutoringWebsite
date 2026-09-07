@@ -4,7 +4,7 @@ import StudentCancellationButton from "./StudentCancellationButton";
 import type { CancellationInfo } from "@/lib/cancellationShared";
 import SessionTimeDisplay from "./SessionTimeDisplay";
 import { useTimeZone } from "./TimeZoneProvider";
-import { sessionDateKey, sessionInstants, zonedParts } from "@/lib/sessionTime";
+import { formatSessionTimeRange, sessionDateKey, sessionInstants, zonedParts } from "@/lib/sessionTime";
 import { useEffect, useMemo, useState } from "react";
 import { Money } from "@/components/CurrencyProvider";
 
@@ -17,6 +17,8 @@ type StudentSession = CancellationInfo & {
   startTime: string;
   endTime: string;
   tutorName: string;
+  tutorEmail?: string;
+  notes?: string | null;
   amount: string | number;
   status?: string;
 };
@@ -28,6 +30,7 @@ export default function StudentScheduleView({
 }) {
   const { timeZone, ready } = useTimeZone();
   const [currentDate, setCurrentDate] = useState(new Date(2000, 0, 1));
+  const [selectedSession, setSelectedSession] = useState<StudentSession | null>(null);
   useEffect(() => {
     const [y, m] = zonedParts(new Date(), timeZone).date.split("-").map(Number);
     setCurrentDate(new Date(y, m - 1, 1));
@@ -152,22 +155,17 @@ export default function StudentScheduleView({
 
                     <div className="space-y-1">
                       {daySessions.map((session) => (
-                        <div
+                        <button
+                          type="button"
                           key={session.id}
-                          className="rounded-lg border border-green-300 bg-green-500 p-2 shadow-sm"
+                          onClick={() => setSelectedSession(session)}
+                          className="w-full rounded-lg border border-green-300 bg-green-600 p-2 text-left shadow-sm transition hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         >
-                          <p className="truncate text-[11px] font-extrabold text-white">
-                            {session.tutorName}
+                          <p className="text-[11px] font-semibold leading-4 text-white">
+                            <span className="font-extrabold">{session.tutorName}</span>{" "}
+                            {formatSessionTimeRange(session)} · Dubai (UTC+4)
                           </p>
-
-                          <p className="text-[10px] font-semibold text-white/90">
-                            <SessionTimeDisplay session={session} />
-                          </p>
-
-                          <p className="mt-1 text-[10px] font-bold text-white">
-                            <Money amountUSD={session.amount} />
-                          </p>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </>
@@ -177,6 +175,46 @@ export default function StudentScheduleView({
           })}
         </div>
       </div>
+
+      {selectedSession && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedSession(null);
+          }}
+        >
+          <div role="dialog" aria-modal="true" aria-labelledby="student-calendar-dialog-title" className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Session details</p>
+                <h4 id="student-calendar-dialog-title" className="mt-1 text-2xl font-extrabold text-slate-950">{selectedSession.tutorName}</h4>
+                {selectedSession.tutorEmail && <p className="text-sm text-slate-500">{selectedSession.tutorEmail}</p>}
+              </div>
+              <button type="button" onClick={() => setSelectedSession(null)} aria-label="Close session details" className="rounded-full bg-slate-100 px-3 py-1.5 text-lg font-bold text-slate-700 hover:bg-slate-200">×</button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl bg-blue-50 p-4 text-sm text-slate-800">
+                <SessionTimeDisplay session={selectedSession} />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-blue-100 p-4">
+                  <p className="text-xs font-semibold text-slate-500">Amount</p>
+                  <p className="mt-1 text-xl font-extrabold text-green-700"><Money amountUSD={selectedSession.amount} /></p>
+                </div>
+                <div className="rounded-2xl border border-blue-100 p-4">
+                  <p className="text-xs font-semibold text-slate-500">Status</p>
+                  <p className="mt-1 text-xl font-extrabold capitalize text-slate-950">{selectedSession.status || "scheduled"}</p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-blue-100 p-4">
+                <p className="text-xs font-semibold text-slate-500">Notes</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{selectedSession.notes || "No notes for this session."}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -112,3 +112,12 @@ export function formatSessionRange(session: SessionTime, timeZone = DUBAI_TIME_Z
     ? zonedParts(end, timeZone).time : format(end);
   return `${format(start)} – ${endText}`;
 }
+
+/** Compact time-only range for calendar event chips. */
+export function formatSessionTimeRange(session: SessionTime, timeZone = DUBAI_TIME_ZONE) {
+  const { start, end } = sessionInstants(session);
+  const first = zonedParts(start, timeZone);
+  const last = zonedParts(end, timeZone);
+  const endText = first.date === last.date ? last.time : `${last.date} ${last.time}`;
+  return `${first.time} – ${endText}`;
+}
