@@ -45,6 +45,7 @@ export default function StudentScheduleView({
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+  const todayKey = zonedParts(new Date(), timeZone).date;
 
   const monthName = currentDate.toLocaleDateString(undefined, {
     month: "long",
@@ -137,21 +138,34 @@ export default function StudentScheduleView({
         <div className="mt-3 grid grid-cols-7 gap-2">
           {days.map((day, index) => {
             const daySessions = day ? sessionsForDay(day) : [];
+            const dateKey = day
+              ? `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+              : "";
+            const isToday = dateKey === todayKey;
 
             return (
               <div
                 key={index}
                 className={`min-h-28 rounded-2xl border p-2 ${
-                  day
+                  isToday
+                    ? "border-blue-600 bg-blue-50 shadow-lg ring-2 ring-blue-300"
+                    : day
                     ? "border-slate-200 bg-slate-50"
                     : "border-slate-100 bg-white"
                 }`}
               >
                 {day && (
                   <>
-                    <p className="mb-2 text-sm font-bold text-slate-700">
-                      {day}
-                    </p>
+                    <div className="mb-2 flex items-center justify-between gap-1">
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-extrabold ${isToday ? "bg-blue-600 text-white" : "text-slate-700"}`}>
+                        {day}
+                      </span>
+                      {isToday && (
+                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+                          Today
+                        </span>
+                      )}
+                    </div>
 
                     <div className="space-y-1">
                       {daySessions.map((session) => (
