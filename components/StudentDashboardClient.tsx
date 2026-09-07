@@ -10,7 +10,7 @@ import CancellationRequests from "./CancellationRequests";
 import type { CancellationInfo } from "@/lib/cancellationShared";
 import StudentScheduleView from "./StudentScheduleView";
 import { downloadInvoice } from "@/lib/downloadInvoice";
-import { Money } from "@/components/CurrencyProvider";
+import { Money, useCurrency } from "@/components/CurrencyProvider";
 
 type Tutor = {
   id: number;
@@ -152,6 +152,7 @@ export default function StudentDashboardClient({
   cancellationSessions,
   stats,
 }: Props) {
+  const { currency } = useCurrency();
   const totalHours = useMemo(() => {
     return allSessions.reduce(
       (sum, session) => sum + Number(session.durationHours || 0),
@@ -288,7 +289,7 @@ value={<Money amountUSD={stats.totalSpent} />}
                     <button
                       key={assignment.id}
                       onClick={() =>
-                        downloadInvoice(assignment.id)
+                        downloadInvoice(assignment.id, currency)
                       }
                       className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
                     >

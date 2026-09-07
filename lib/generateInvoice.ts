@@ -1,5 +1,6 @@
 import { DUBAI_TIME_ZONE, sessionInstants, zonedParts } from "./sessionTime";
 import jsPDF from "jspdf";
+import type { CurrencyCode } from "./currency";
 
 type InvoiceSession = {
   id?: number;
@@ -22,6 +23,8 @@ type InvoiceData = {
   subject: string;
   sessions: InvoiceSession[];
   amountPaid?: number;
+  currency: CurrencyCode;
+  conversionRate: number;
 };
 
 /** Apply confirmed payments to active sessions oldest first, in integer cents.
@@ -85,6 +88,8 @@ export function buildInvoice({
   subject,
   sessions: allSessions,
   amountPaid = 0,
+  currency,
+  conversionRate,
 }: InvoiceData) {
   const sessions = getUnpaidInvoiceSessions(allSessions, amountPaid);
   if (sessions.length === 0) {
@@ -95,8 +100,17 @@ export function buildInvoice({
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 18;
 
-  // Each row already contains its outstanding amount. Do not subtract payments again.
-  const balanceDue = sessions.reduce((sum, session) => sum + session.remainingCents, 0) / 100;
+  // Match the page currency toggle: convert from USD and round to the nearest 5.
+  const convertFromUSD = (amountUSD: number) => Math.round((amountUSD * conversionRate) / 5) * 5;
+  const formatMoney = (amount: number) => {
+    const formatted = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: amount >= 100 ? 0 : 2,
+      maximumFractionDigits: amount >= 100 ? 0 : 2,
+    }).format(amount);
+    return `${currency} ${formatted}`;
+  };
+  const convertedSessionBalances = sessions.map(session => convertFromUSD(session.remainingAmount));
+  const balanceDue = convertedSessionBalances.reduce((sum, amount) => sum + amount, 0);
 
   const issueDate = new Date().toLocaleDateString("en-GB", {
     timeZone: DUBAI_TIME_ZONE,
@@ -164,7 +178,7 @@ export function buildInvoice({
   doc.text(`Subject: ${subject}`, margin, y);
   doc.text(`Period: ${getMonthLabel(sessions)}`, margin, y + 8);
   doc.text("Payment Method: Online Bank Transfer", margin, y + 16);
-  doc.text(`Unpaid Sessions: ${sessions.length} | All lesson times: Dubai (UTC+4)`, margin, y + 24);
+  doc.text(`Unpaid Sessions: ${sessions.length} | Currency: ${currency} | Times: Dubai (UTC+4)`, margin, y + 24);
 
   y += 40;
 
@@ -220,7 +234,7 @@ export function buildInvoice({
     const rate = session.hourlyRateApplied == null
       ? Number(session.amount) / Number(session.durationHours)
       : Number(session.hourlyRateApplied);
-    doc.text(`$${Number.isFinite(rate) ? rate.toFixed(2) : "0.00"}`, margin + 109, y);
+    doc.text(formatMoney(convertFromUSD(Number.isFinite(rate) ? rate : 0)), margin + 109, y);
 
     const notes = session.notes || "Tutoring session";
     const clippedNotes =
@@ -229,13 +243,13 @@ export function buildInvoice({
     doc.text(clippedNotes, margin + 130, y);
     if (session.appliedPayment > 0) {
       doc.setFontSize(7);
-      doc.text(`Paid $${session.appliedPayment.toFixed(2)} of $${session.originalAmount.toFixed(2)}`, margin + 130, y + 5);
+      doc.text(`Paid ${formatMoney(convertFromUSD(session.appliedPayment))}`, margin + 130, y + 5);
       doc.setFontSize(9);
     }
 
     doc.setFont("helvetica", "bold");
     doc.text(
-      `$${session.remainingAmount.toFixed(2)} USD`,
+      formatMoney(convertedSessionBalances[index]),
       pageWidth - margin - 4,
       y,
       { align: "right" }
@@ -258,7 +272,7 @@ export function buildInvoice({
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("BALANCE DUE", pageWidth - margin - 76, y + 14);
-  doc.text(`$${balanceDue.toFixed(2)} USD`, pageWidth - margin - 6, y + 14, { align: "right" });
+  doc.text(formatMoney(balanceDue), pageWidth - margin - 6, y + 14, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(90, 90, 90);
@@ -317,7 +331,7 @@ export function buildInvoice({
   doc.setTextColor(40, 120, 85);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text(`Balance Due: $${balanceDue.toFixed(2)} USD`, margin + 8, y + 19);
+  doc.text(`Balance Due: ${formatMoney(balanceDue)}`, margin + 8, y + 19);
 
   y += 50;
 

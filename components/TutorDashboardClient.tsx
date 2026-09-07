@@ -9,7 +9,7 @@ import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import TutorScheduleManager from "./TutorScheduleManager";
 import TutorCalendar from "./TutorCalendar";
-import { Money } from "@/components/CurrencyProvider";
+import { Money, useCurrency } from "@/components/CurrencyProvider";
 import { downloadInvoice } from "@/lib/downloadInvoice";
 
 type Student = {
@@ -169,6 +169,7 @@ export default function TutorDashboardClient({
   stats,
 }: Props) {
   const { timeZone } = useTimeZone();
+  const { currency } = useCurrency();
   const router = useRouter();
 
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -195,7 +196,7 @@ export default function TutorDashboardClient({
       return;
     }
 
-    downloadInvoice(assignment.id);
+    downloadInvoice(assignment.id, currency);
   }
 
   async function confirmManualPayment() {
