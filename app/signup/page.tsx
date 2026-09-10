@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import SocialAuthButtons from "@/components/SocialAuthButtons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -67,7 +68,9 @@ export default function SignupPage() {
             Create your account before booking.
           </p>
 
-          <form onSubmit={handleSignup} className="mt-8 space-y-5">
+          <SocialAuthButtons callbackUrl="/dashboard" />
+
+          <form onSubmit={handleSignup} className="mt-2 space-y-5">
             <input
               type="text"
               placeholder="Full name"
