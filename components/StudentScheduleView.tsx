@@ -7,6 +7,7 @@ import { useTimeZone } from "./TimeZoneProvider";
 import { formatSessionTimeRange, sessionDateKey, sessionInstants, zonedParts } from "@/lib/sessionTime";
 import { useEffect, useMemo, useState } from "react";
 import { Money } from "@/components/CurrencyProvider";
+import CalendarSyncButtons from "./CalendarSyncButtons";
 
 type StudentSession = CancellationInfo & {
   id: number;
@@ -109,6 +110,7 @@ export default function StudentScheduleView({
 
       {/* CALENDAR */}
       <div className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+        <CalendarSyncButtons />
         <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => setCurrentDate(new Date(year, month - 1, 1))}

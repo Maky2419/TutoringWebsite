@@ -5,6 +5,7 @@ import { useTimeZone } from "./TimeZoneProvider";
 import { formatSessionTimeRange, sessionDateKey, zonedParts } from "@/lib/sessionTime";
 import { useEffect, useMemo, useState } from "react";
 import { Money } from "@/components/CurrencyProvider";
+import CalendarSyncButtons from "./CalendarSyncButtons";
 
 type CalendarSession = {
   id: number;
@@ -76,6 +77,7 @@ export default function TutorCalendar({
 
   return (
     <div>
+      <CalendarSyncButtons />
       <div className="mb-5 flex items-center justify-between">
         <button
           onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
