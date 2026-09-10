@@ -4,6 +4,26 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+function publicOrigin(request: Request) {
+  // Behind Nginx, request.url may be http://localhost:3000. Prefer the
+  // canonical production URL used by NextAuth.
+  const configuredUrl = process.env.NEXTAUTH_URL || process.env.APP_BASE_URL;
+  if (configuredUrl) {
+    try {
+      return new URL(configuredUrl).origin;
+    } catch {
+      // Fall through to the proxy headers if the environment value is invalid.
+    }
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || request.headers.get("host");
+  const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (host) return `${forwardedProtocol || "https"}://${host}`;
+
+  return new URL(request.url).origin;
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id?: string } | undefined)?.id;
@@ -21,7 +41,7 @@ export async function POST(request: Request) {
     await prisma.user.update({ where: { id: userId }, data: { calendarFeedToken: token } });
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = publicOrigin(request);
   const feedUrl = `${origin}/api/calendar/${token}`;
   return NextResponse.json({
     feedUrl,
