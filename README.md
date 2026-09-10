@@ -6,7 +6,7 @@
 - Tutor receives an email with Accept / Decline links
 - When tutor clicks a link, the student gets emailed the result
 - Students and tutors can subscribe to a live Apple/Google calendar feed
-- Login supports email/password plus Google, Apple, and Microsoft when configured
+- Login supports email/password plus Google when configured
 
 ## Prerequisites
 - Node.js 18+
@@ -70,12 +70,10 @@ Open:
 
 ## Social login setup
 
-Create OAuth applications with Google, Apple, and/or Microsoft, then add the
-matching values from `.env.example` to `.env`. Configure these callback URLs:
+Create a Google OAuth application, then add the matching values from
+`.env.example` to `.env`. Configure this callback URL:
 
 - Google: `https://YOUR-DOMAIN/api/auth/callback/google`
-- Apple: `https://YOUR-DOMAIN/api/auth/callback/apple`
-- Microsoft: `https://YOUR-DOMAIN/api/auth/callback/azure-ad`
 
 For local testing, replace `https://YOUR-DOMAIN` with `http://localhost:3000`
 where the provider permits local callbacks. Restart the application after

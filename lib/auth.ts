@@ -2,8 +2,6 @@ import { recordActivity } from "./activity";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import AppleProvider from "next-auth/providers/apple";
-import AzureADProvider from "next-auth/providers/azure-ad";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
@@ -38,22 +36,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     allowDangerousEmailAccountLinking: true,
   }));
 }
-if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
-  providers.push(AppleProvider({
-    clientId: process.env.APPLE_ID,
-    clientSecret: process.env.APPLE_SECRET,
-    allowDangerousEmailAccountLinking: true,
-  }));
-}
-if (process.env.AZURE_AD_CLIENT_ID && process.env.AZURE_AD_CLIENT_SECRET) {
-  providers.push(AzureADProvider({
-    clientId: process.env.AZURE_AD_CLIENT_ID,
-    clientSecret: process.env.AZURE_AD_CLIENT_SECRET,
-    tenantId: process.env.AZURE_AD_TENANT_ID || "common",
-    allowDangerousEmailAccountLinking: true,
-  }));
-}
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
